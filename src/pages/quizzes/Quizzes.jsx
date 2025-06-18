@@ -64,7 +64,7 @@ const QuizCard = ({ quiz, index }) => {
                         className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                        <h3 className="text-xl font-bold text-white px-4 text-center">
+                        <h3 className="text-xl font-bold px-4 text-center">
                             {quiz.title}
                         </h3>
                     </div>
@@ -79,7 +79,7 @@ const QuizCard = ({ quiz, index }) => {
                         </p>
                     </div>
 
-                    <h4 className="text-lg font-bold mb-4">
+                    <h4 className="text-lg text-black font-bold mb-4">
                         {quiz.question}
                     </h4>
 
@@ -87,13 +87,13 @@ const QuizCard = ({ quiz, index }) => {
                     <div className="space-y-3 mb-6">
                         {quiz.answers.map((answer, idx) => (
                             <motion.div
-                                key={idx}
+                                key={idx + 1}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 <div
                                     onClick={() => !showResult && handleAnswerSelect(idx)}
-                                    className={`p-3 cursor-pointer border-2 rounded-md shadow-sm transition-all ${showResult
+                                    className={`p-3 cursor-pointer text-neutral-800 border-2 rounded-md shadow-sm transition-all ${showResult
                                         ? idx === quiz.correctAnswer
                                             ? 'border-green-500 bg-green-50'
                                             : selectedAnswer === idx
