@@ -2,12 +2,6 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, formatDistanceToNow, differenceInHours } from "date-fns";
-import {
-    ThumbUpIcon,
-    ShareIcon,
-    DotsHorizontalIcon,
-    HeartIcon, LightningBoltIcon
-} from "@heroicons/react/solid";
 import { CommentOutlined } from "@mui/icons-material";
 import ImageMedia from "./ImageMedia";
 import VideoMedia from "./VideoMedia";
@@ -16,6 +10,13 @@ import FullScreenModal from "./MediaFullScreen";
 import Comment from "./CommentCard";
 import ReactionPicker from "./ReactionPicker";
 import StarRating from "./PostRating";
+import {
+    ThumbsUp,
+    Heart,
+    Smile,
+    Zap,
+    Flame
+} from "lucide-react";
 
 
 const PostCard = ({ post }) => {
@@ -138,7 +139,7 @@ const PostCard = ({ post }) => {
                     transition={{ duration: 0.2 }}
                     className="text-gray-500 p-2 rounded-full "
                 >
-                    <DotsHorizontalIcon className="h-5 w-5" />
+                    <Zap className="h-5 w-5" />
                 </motion.button>
             </motion.div>
 
@@ -179,13 +180,13 @@ const PostCard = ({ post }) => {
                     <div className="flex items-center">
                         <div className="flex  -space-x-1">
                             <div className="rounded-full bg-blue-500 p-1">
-                                <ThumbUpIcon className="h-3 w-3 text-white" />
+                                <ThumbsUp className="h-3 w-3 text-white" />
                             </div>
                             <div className="rounded-full bg-red-500 p-1">
-                                <HeartIcon className="h-3 w-3 text-white" />
+                                <Heart className="h-3 w-3 text-white" />
                             </div>
                             <div className="rounded-full bg-yellow-500 p-1">
-                                <LightningBoltIcon className="h-3 w-3 text-white" />
+                                <Flame className="h-3 w-3 text-white" />
                             </div>
                         </div>
                         <span className="ml-2">{post.like + (likeStatus ? 1 : 0)}</span>
@@ -220,7 +221,7 @@ const PostCard = ({ post }) => {
                         onHoverEnd={() => setShowReactions(false)}
                         onClick={() => handleLike()}
                     >
-                        <ThumbUpIcon className={`h-5 w-5 mr-2 ${likeStatus ? "text-blue-500" : "text-gray-500"}`} />
+                        <ThumbsUp className={`h-5 w-5 mr-2 ${likeStatus ? "text-blue-500" : "text-gray-500"}`} />
                         {likeStatus || "Like"}
                     </motion.button>
 

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 
 const Comment = ({ comment, level = 0 }) => {
@@ -83,12 +83,12 @@ const Comment = ({ comment, level = 0 }) => {
                     >
                         {showReplies ? (
                             <>
-                                <ChevronUpIcon className="h-3 w-3 mr-1" />
+                                <ChevronUp className="h-3 w-3 mr-1" />
                                 Hide replies
                             </>
                         ) : (
                             <>
-                                <ChevronDownIcon className="h-3 w-3 mr-1" />
+                                <ChevronDown className="h-3 w-3 mr-1" />
                                 Show {comment.replies.length} replies
                             </>
                         )}

@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import { motion } from "framer-motion";
-import { DocumentTextIcon } from "@heroicons/react/solid";
+import { BookCopyIcon } from "lucide-react";
+
 
 const PdfMedia = ({ src, openFullScreen }) => {
     return (
@@ -10,7 +11,7 @@ const PdfMedia = ({ src, openFullScreen }) => {
             onClick={openFullScreen}
         >
             <div className="flex items-center">
-                <DocumentTextIcon className="h-12 w-12 text-red-500" />
+                <BookCopyIcon className="h-12 w-12 text-red-500" />
                 <div className="ml-4">
                     <h3 className="font-medium">{src.split('/').pop()}</h3>
                     <p className="text-sm text-gray-500">PDF Document - Click to view</p>
