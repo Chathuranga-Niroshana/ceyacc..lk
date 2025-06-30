@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import AuthHeader from '../../components/layout/AuthHeader';
 import loginImage from '../../assets/images/authPages/loginPageImage.png';
@@ -5,7 +6,7 @@ import InputField from '../../components/input/InputField';
 import CheckboxField from '../../components/input/CheckboxField';
 import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import MainButton from '../../components/button/MainButton';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -20,6 +21,7 @@ import { login } from '../../features/auth/authSlice';
 
 const Login = () => {
     const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const [loginData, setLoginData] = useState({
         email: '',
@@ -64,18 +66,21 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
         if (!validateForm()) return;
+        setIsLoading(true);
+        setErrors({})
         try {
-            setIsLoading(true);
-            setErrors({});
-            const data = {
-                "email": loginData.email,
-                "password": loginData.password
+            const { success } = await dispatch(login({
+                email: loginData.email,
+                password: loginData.password,
+            })).unwrap();
+            if (success) {
+                navigate('/')
             }
-            const response = dispatch(login(data));
-            console.log(response)
         } catch (error) {
-            console.log(error)
+            setErrors({ apiError: error || 'Login failed' });
         } finally {
             setIsLoading(false)
         }
@@ -216,7 +221,11 @@ const Login = () => {
                                 }
                             }}
                         />
-
+                        {errors.apiError && (
+                            <Typography color="error" sx={{ mb: 2, textAlign: 'center' }}>
+                                {errors.apiError}
+                            </Typography>
+                        )}
                         <Box
                             sx={{
                                 display: 'flex',
@@ -234,6 +243,7 @@ const Login = () => {
                                 onChange={handleChange}
                                 name="rememberMe"
                                 sx={{
+                                    color: '#BA0A0C',
                                     '& .MuiCheckbox-root': {
                                         color: '#BA0A0C',
                                         '&.Mui-checked': {
@@ -259,6 +269,7 @@ const Login = () => {
                         </Box>
 
                         <MainButton
+                            type="submit"
                             label={isLoading ? (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <CircularProgress size={20} color="inherit" />
@@ -268,7 +279,6 @@ const Login = () => {
                                 'Sign In'
                             )}
                             id="login-button"
-                            onClick={handleSubmit}
                             disabled={isLoading}
                             fullWidth
                             size="large"
