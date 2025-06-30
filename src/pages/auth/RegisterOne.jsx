@@ -74,7 +74,7 @@ const RegisterOne = ({ nextPage, userType, setUserType, userData, setUserData, e
     const validateForm = () => {
         const newErrors = {};
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const mobileRegex = /^[0-9]{10}$/;
+        const mobileRegex = /^\d{10}$/;
 
         if (!userData.name) newErrors.name = 'Name is required';
         if (!userData.email) newErrors.email = 'Email is required';
@@ -238,7 +238,15 @@ const RegisterOne = ({ nextPage, userType, setUserType, userData, setUserData, e
                                     sx={{ mb: 2 }}
                                 />
 
-                                <Grid container spacing={2} sx={{ mb: 3 }}>
+                                <Grid
+                                    container
+                                    fullWidth
+                                    spacing={2}
+                                    sx={{
+                                        mb: 3,
+                                        flexDirection: 'column'
+                                    }}
+                                >
                                     <Grid item xs={12} sm={6}>
                                         <InputField
                                             id="password"
@@ -267,6 +275,10 @@ const RegisterOne = ({ nextPage, userType, setUserType, userData, setUserData, e
                                             helperText={errors.confirmPassword}
                                             fullWidth
                                             required
+                                            sx={{
+                                                // width: '50%',
+                                                // backgroundColor: '#000',
+                                            }}
                                         />
                                     </Grid>
                                 </Grid>
