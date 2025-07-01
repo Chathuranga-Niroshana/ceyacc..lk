@@ -105,8 +105,8 @@ const StudentDataRegister = ({
 
         if (!studentData.grade) newErrors.grade = 'Grade is required';
         if (!studentData.schoolName) newErrors.schoolName = 'School name is required';
-        if (!studentData.city) newErrors.city = 'City is required';
-        if (!studentData.district) newErrors.district = 'District is required';
+        // if (!studentData.city) newErrors.city = 'City is required';
+        // if (!studentData.district) newErrors.district = 'District is required';
         if (!studentData.province) newErrors.province = 'Province is required';
 
         setErrors(newErrors);
@@ -294,8 +294,8 @@ const StudentDataRegister = ({
                                             whileTap={{ scale: 0.98 }}
                                         >
                                             <MainButton
+                                                onClick={handleSubmit}
                                                 size="large"
-                                                type="submit"
                                                 variant="contained"
                                                 color="primary"
                                                 sx={{
