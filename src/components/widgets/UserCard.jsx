@@ -60,9 +60,9 @@ const UserCard = ({ user }) => {
         >
             {/* Cover Image */}
             <div className="h-32 w-full relative bg-blue-100">
-                {user.coverImage && (
+                {user?.cover_image && (
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-900/30">
-                        <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${user.coverImage})` }}></div>
+                        <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${user?.cover_image})` }}></div>
                     </div>
                 )}
             </div>
@@ -70,8 +70,8 @@ const UserCard = ({ user }) => {
             <div className="px-6 py-4 relative">
                 {/* Profile Image */}
                 <div className="absolute -top-16 left-6 w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-200">
-                    {user.image ? (
-                        <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                    {user?.image ? (
+                        <img src={user?.image} alt={user?.name} className="w-full h-full object-cover" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-blue-100">
                             <Person className="text-blue-500" style={{ fontSize: 40 }} />
@@ -104,34 +104,34 @@ const UserCard = ({ user }) => {
                 {/* Basic Info */}
                 <div className="mt-10">
                     <div className="flex items-center gap-2">
-                        <h2 className="text-xl font-bold">{user.name}</h2>
-                        {user.isVerified && (
+                        <h2 className="text-xl font-bold">{user?.name}</h2>
+                        {user?.is_verified && (
                             <Verified className="text-blue-500" fontSize="small" />
                         )}
                     </div>
 
                     <div className="flex items-center gap-2 mt-1 text-gray-600">
                         <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
-                            {roleLabels[user.role] || 'User'}
+                            {roleLabels[user?.role_id] || 'User'}
                         </span>
-                        <span className="text-sm">{user.city}, {user.province}</span>
+                        <span className="text-sm">{user?.city}, {user?.province}</span>
                     </div>
 
-                    <p className="mt-2 text-gray-600">{user.bio}</p>
+                    <p className="mt-2 text-gray-600">{user?.bio}</p>
 
                     {/* Stats */}
                     <div className="flex gap-4 mt-4">
                         <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold text-blue-600">{user.score}</span>
+                            <span className="text-lg font-bold text-blue-600">{user?.system_score.source}</span>
                             <span className="text-xs text-gray-500">Score</span>
                         </div>
                         <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold text-green-600">Lvl {user.level}</span>
+                            <span className="text-lg font-bold text-green-600">Lvl {user?.level.name}</span>
                             <span className="text-xs text-gray-500">Level</span>
                         </div>
                         <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold text-purple-600">{user.role === 2 ? (user.subjectsTaught?.length || 0) : 'G' + user.grade?.replace('Grade ', '')}</span>
-                            <span className="text-xs text-gray-500">{user.role === 2 ? 'Subjects' : 'Grade'}</span>
+                            <span className="text-lg font-bold text-purple-600">{user?.role_id === 2 ? (user?.subjectsTaught?.length || 0) : 'G' + user?.grade?.replace('Grade ', '')}</span>
+                            <span className="text-xs text-gray-500">{user?.role_id === 2 ? 'Subjects' : 'Grade'}</span>
                         </div>
                     </div>
 
@@ -167,7 +167,7 @@ const UserCard = ({ user }) => {
                                 <School className="text-blue-500" fontSize="small" />
                                 <div>
                                     <div className="text-sm font-medium">School</div>
-                                    <div className="text-gray-600">{user.schoolName}</div>
+                                    <div className="text-gray-600">{user?.school_name}</div>
                                 </div>
                             </div>
 
@@ -175,7 +175,7 @@ const UserCard = ({ user }) => {
                                 <Email className="text-blue-500" fontSize="small" />
                                 <div>
                                     <div className="text-sm font-medium">Email</div>
-                                    <div className="text-gray-600">{user.email}</div>
+                                    <div className="text-gray-600">{user?.email}</div>
                                 </div>
                             </div>
 
@@ -183,7 +183,7 @@ const UserCard = ({ user }) => {
                                 <Cake className="text-blue-500" fontSize="small" />
                                 <div>
                                     <div className="text-sm font-medium">Date of Birth</div>
-                                    <div className="text-gray-600">{new Date(user.dob).toLocaleDateString()}</div>
+                                    <div className="text-gray-600">{new Date(user?.dob).toLocaleDateString()}</div>
                                 </div>
                             </div>
 
@@ -191,36 +191,36 @@ const UserCard = ({ user }) => {
                                 <LocationCity className="text-blue-500" fontSize="small" />
                                 <div>
                                     <div className="text-sm font-medium">Location</div>
-                                    <div className="text-gray-600">{user.city}, {user.district}</div>
+                                    <div className="text-gray-600">{user?.city}, {user?.district}</div>
                                 </div>
                             </div>
 
-                            {user.role === 2 && user.subjectsTaught && (
+                            {user?.role_id === 2 && user?.subjectsTaught && (
                                 <div className="flex items-center gap-2">
                                     <Book className="text-blue-500" fontSize="small" />
                                     <div>
                                         <div className="text-sm font-medium">Subjects Taught</div>
-                                        <div className="text-gray-600">{user.subjectsTaught.join(', ')}</div>
+                                        <div className="text-gray-600">{user?.subjectsTaught.join(', ')}</div>
                                     </div>
                                 </div>
                             )}
 
-                            {user.role === 2 && user.teachingExperience && (
+                            {user?.role_id === 2 && user?.teachingExperience && (
                                 <div className="flex items-center gap-2">
                                     <WorkHistory className="text-blue-500" fontSize="small" />
                                     <div>
                                         <div className="text-sm font-medium">Experience</div>
-                                        <div className="text-gray-600">{user.teachingExperience}</div>
+                                        <div className="text-gray-600">{user?.teachingExperience}</div>
                                     </div>
                                 </div>
                             )}
 
-                            {user.role === 1 && user.grade && (
+                            {user?.role_id === 1 && user?.grade && (
                                 <div className="flex items-center gap-2">
                                     <Book className="text-blue-500" fontSize="small" />
                                     <div>
                                         <div className="text-sm font-medium">Grade</div>
-                                        <div className="text-gray-600">{user.grade}</div>
+                                        <div className="text-gray-600">{user?.grade}</div>
                                     </div>
                                 </div>
                             )}
@@ -229,7 +229,7 @@ const UserCard = ({ user }) => {
                                 <EmojiEvents className="text-blue-500" fontSize="small" />
                                 <div>
                                     <div className="text-sm font-medium">Joined</div>
-                                    <div className="text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</div>
+                                    <div className="text-gray-600">{new Date(user?.created_at).toLocaleDateString()}</div>
                                 </div>
                             </div>
                         </div>

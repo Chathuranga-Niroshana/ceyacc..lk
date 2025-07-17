@@ -57,10 +57,10 @@ const PostCard = ({ post }) => {
         setFullScreen(true);
     };
 
-    const isExpanded = expandedPosts[post.id];
+    const isExpanded = expandedPosts[post?.id];
     const descriptionClass = isExpanded ? "h-auto" : "line-clamp-2";
 
-    const postDate = new Date(post.post_date);
+    const postDate = new Date(post?.created_at);
     const now = new Date();
     const hoursDifference = differenceInHours(now, postDate);
 
@@ -70,29 +70,29 @@ const PostCard = ({ post }) => {
             : format(postDate, "MMMM d, yyyy");
 
     const renderMedia = () => {
-        if (!post.media) return null;
+        if (!post?.media_link) return null;
 
-        switch (post.media.type) {
+        switch (post?.media_type) {
             case 'image':
                 return (
                     <ImageMedia
-                        src={post.media.url}
+                        src={post?.media_link}
                         alt="Post image"
-                        openFullScreen={() => openFullScreen('image', post.media.url)}
+                        openFullScreen={() => openFullScreen('image', post?.media_link)}
                     />
                 );
             case 'video':
                 return (
                     <VideoMedia
-                        src={post.media.url}
-                        openFullScreen={() => openFullScreen('video', post.media.url)}
+                        src={post?.media_link}
+                        openFullScreen={() => openFullScreen('video', post?.media_link)}
                     />
                 );
             case 'pdf':
                 return (
                     <PdfMedia
-                        src={post.media.url}
-                        openFullScreen={() => openFullScreen('pdf', post.media.url)}
+                        src={post?.media_link}
+                        openFullScreen={() => openFullScreen('pdf', post?.media_link)}
                     />
                 );
             default:
@@ -118,16 +118,16 @@ const PostCard = ({ post }) => {
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 300 }}
                 >
-                    {post.user.image && (
+                    {post?.user.image && (
                         <img
-                            src={post.user.image}
+                            src={post?.user.image}
                             alt="Profile"
                             className="rounded-full w-12 h-12 mr-4 border-2 border-[#90093A]"
                         />
                     )}
                     <div>
                         <h2 className="font-bold text-gray-800">
-                            {post.user.first_name} {post.user.last_name}
+                            {post?.user.name}
                         </h2>
                         <div className="flex items-center">
                             <p className="text-xs text-gray-500">{formattedDate}</p>
@@ -151,12 +151,12 @@ const PostCard = ({ post }) => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}
                 >
-                    {post.name}
+                    {post?.title}
                 </motion.p>
 
-                {post.name.length > 100 && (
+                {post?.title.length > 100 && (
                     <motion.button
-                        onClick={() => toggleExpand(post.id)}
+                        onClick={() => toggleExpand(post?.id)}
                         className="text-blue-500 hover:text-blue-700 mt-2 self-start text-sm font-medium"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -189,7 +189,7 @@ const PostCard = ({ post }) => {
                                 <Flame className="h-3 w-3 text-white" />
                             </div>
                         </div>
-                        <span className="ml-2">{post.like + (likeStatus ? 1 : 0)}</span>
+                        <span className="ml-2">{post?.reactions?.length + (likeStatus ? 1 : 0)}</span>
                     </div>
 
                     <div className="flex gap-4 space-x-4">
@@ -197,10 +197,10 @@ const PostCard = ({ post }) => {
                             onClick={() => setShowComments(!showComments)}
                             className="hover:underline"
                         >
-                            {post.comments ? post.comments.length : 0} comments
+                            {post?.comments ? post?.comments.length : 0} comments
                         </button>
                         <div className="flex items-center">
-                            <StarRating rating={post.rating || 0} setRating={() => { }} interactive={false} />
+                            <StarRating rating={post?.post_ratings.source || 0} setRating={() => { }} interactive={false} />
                         </div>
                     </div>
                 </div>
@@ -313,9 +313,9 @@ const PostCard = ({ post }) => {
                                 />
                             </form>
 
-                            {post.comments && post.comments.length > 0 && (
+                            {post?.comments && post?.comments?.length > 0 && (
                                 <div style={{ padding: '8px 16px', margin: '8px', }} className="mt-4">
-                                    {post.comments.map((comment, index) => (
+                                    {post?.comments?.map((comment, index) => (
                                         <Comment key={index} comment={comment} />
                                     ))}
                                 </div>

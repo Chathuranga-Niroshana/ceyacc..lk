@@ -8,11 +8,11 @@ import { SlUserFollowing } from "react-icons/sl";
 import SearchField from '../../components/layout/SearchField';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchFollowing,
+    // fetchFollowing,
     fetchStudents,
     fetchTeachers,
     clearStudents,
-    clearFollowing,
+    // clearFollowing,
     clearTeachers
 } from '../../features/users/usersSlice';
 import UserCard from '../../components/widgets/UserCard';
@@ -20,8 +20,8 @@ import UserCard from '../../components/widgets/UserCard';
 const tabs = [
     { icon: <PiStudentDuotone />, name: "Students" },
     { icon: <GiTeacher />, name: "Teachers" },
-    { icon: <LuSchool />, name: "My School" },
-    { icon: <SlUserFollowing />, name: "Following" },
+    // { icon: <LuSchool />, name: "My School" },
+    // { icon: <SlUserFollowing />, name: "Following" },
 ];
 
 const Users = () => {
@@ -29,14 +29,14 @@ const Users = () => {
     const previousValue = useRef(0);
     const dispatch = useDispatch();
 
-    const { students, teachers, following } = useSelector((state) => state.users);
+    const { students, teachers } = useSelector((state) => state.users);
 
     const getUsersByTab = (tabIndex) => {
         switch (tabIndex) {
             case 0: return students;
             case 1: return teachers;
-            case 2: return []; // assuming My School has no data currently
-            case 3: return following;
+            // case 2: return []; // assuming My School has no data currently
+            // case 3: return following;
             default: return [];
         }
     };
@@ -45,7 +45,7 @@ const Users = () => {
         switch (tabIndex) {
             case 0: return dispatch(fetchStudents());
             case 1: return dispatch(fetchTeachers());
-            case 3: return dispatch(fetchFollowing());
+            // case 3: return dispatch(fetchFollowing());
             default: return;
         }
     }, [dispatch]);
@@ -54,7 +54,7 @@ const Users = () => {
         switch (tabIndex) {
             case 0: return dispatch(clearStudents());
             case 1: return dispatch(clearTeachers());
-            case 3: return dispatch(clearFollowing());
+            // case 3: return dispatch(clearFollowing());
             default: return;
         }
     }, [dispatch]);

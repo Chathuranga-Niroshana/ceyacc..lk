@@ -58,7 +58,7 @@ const sampleCourse = {
     applicableLevel: 10,
     instructor: "Sarah Johnson",
     duration: "5 hours",
-    createdAt: "2025-01-15",
+    created_at: "2025-01-15",
     students: 3240,
     isPrivate: false
 };
@@ -605,7 +605,7 @@ const CourseDetails = () => {
                         </div>
                         <div className="flex items-center text-gray-600">
                             <Calendar className="w-4 h-4 mr-1" />
-                            <span>Created: {course.createdAt}</span>
+                            <span>Created: {course.created_at}</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                             <Bookmark className="w-4 h-4 mr-1" />

@@ -105,8 +105,8 @@ const StudentDataRegister = ({
 
         if (!studentData.grade) newErrors.grade = 'Grade is required';
         if (!studentData.schoolName) newErrors.schoolName = 'School name is required';
-        if (!studentData.city) newErrors.city = 'City is required';
-        if (!studentData.district) newErrors.district = 'District is required';
+        // if (!studentData.city) newErrors.city = 'City is required';
+        // if (!studentData.district) newErrors.district = 'District is required';
         if (!studentData.province) newErrors.province = 'Province is required';
 
         setErrors(newErrors);
@@ -180,9 +180,9 @@ const StudentDataRegister = ({
                                                 label="Current Grade"
                                                 onChange={handleChange}
                                             >
-                                                {grades.map((grade) => (
-                                                    <MenuItem key={grade} value={grade}>
-                                                        {grade}
+                                                {grades.map((grade, index) => (
+                                                    <MenuItem key={index + 1} value={grade.value}>
+                                                        {grade.name}
                                                     </MenuItem>
                                                 ))}
                                             </Select>
@@ -220,7 +220,7 @@ const StudentDataRegister = ({
                                         />
                                     </motion.div>
 
-                                    <motion.div variants={itemVariants} style={{ marginBottom: 10 }}>
+                                    {/* <motion.div variants={itemVariants} style={{ marginBottom: 10 }}>
                                         <InputField
                                             id="city"
                                             label="City"
@@ -233,7 +233,7 @@ const StudentDataRegister = ({
                                             fullWidth
                                             required
                                         />
-                                    </motion.div>
+                                    </motion.div> */}
 
                                     <Grid container spacing={2}>
                                         <Grid item xs={12} sm={6}>
@@ -294,8 +294,8 @@ const StudentDataRegister = ({
                                             whileTap={{ scale: 0.98 }}
                                         >
                                             <MainButton
+                                                onClick={handleSubmit}
                                                 size="large"
-                                                type="submit"
                                                 variant="contained"
                                                 color="primary"
                                                 sx={{

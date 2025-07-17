@@ -1,11 +1,17 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import TeacherRegister from './TeacherRegister';
 import StudentDataRegister from './StudentDataRegister';
 import RegisterOne from './RegisterOne';
 import { provinces } from '../../data/provinces';
 import { districts } from '../../data/districts';
+import { useDispatch } from 'react-redux';
+import { register } from '../../features/auth/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
     const [currentPage, setCurrentPage] = useState(1);
     const [userType, setUserType] = useState(1);
     const [userData, setUserData] = useState({
@@ -16,7 +22,7 @@ const Register = () => {
         confirmPassword: '',
         mobileNo: '',
         role: 1,
-        sex: 1,
+        sex: 'male',
     });
 
     const [errors, setErrors] = useState({});
@@ -72,20 +78,86 @@ const Register = () => {
         setCurrentPage(1);
     };
 
+    const studentValidateForm = () => {
+        const newErrors = {};
+
+        // Add missing validations
+        if (!studentData.dob) newErrors.dob = 'Date of birth is required';
+        if (!studentData.grade) newErrors.grade = 'Grade is required';
+        if (!studentData.schoolName) newErrors.schoolName = 'School name is required';
+        if (!studentData.schoolAddressLineOne) newErrors.schoolAddressLineOne = 'School address is required';
+        if (!studentData.district) newErrors.district = 'District is required';
+        if (!studentData.province) newErrors.province = 'Province is required';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     // Handle final submission
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         console.log('Submitting registration data:');
         console.log('User Data:', userData);
-
-        if (userType === 2) {
-            console.log('Teacher Data:', teacherData);
-        } else {
+        const formattedUserData = {
+            image: userData.image,
+            cover_image: null,
+            name: userData.name,
+            bio: "",
+            email: userData.email,
+            password: userData.password,
+            mobile_no: userData.mobileNo,
+            sex: userData.sex,
+            role_id: Number(userData.role)
+        }
+        const formattedStudentData = {
+            dob: studentData.dob,
+            school_name: studentData.schoolName,
+            address_line_one: studentData.schoolAddressLineOne,
+            city: studentData.district,
+            province: studentData.province,
+            student: {
+                grade: studentData.grade
+            }
+        }
+        const formattedTeacherData = {
+            dob: teacherData.dob,
+            school_name: teacherData.schoolName,
+            address_line_one: teacherData.schoolAddressLineOne,
+            city: teacherData.district,
+            province: teacherData.province,
+            nic: teacherData.nic,
+            teacher: {
+                subjects_taught: teacherData.subjectsTaught,
+                teaching_experience: teacherData.teachingExperience
+            }
+        }
+        if (userType == 1) {
             console.log('Student Data:', studentData);
+            try {
+                const response = await dispatch(register({ ...formattedUserData, ...formattedStudentData })).unwrap()
+                console.log(response.data)
+                alert('Registration submitted successfully!');
+                window.location.replace('/login')
+            } catch (error) {
+                console.log(error)
+                alert("Registration Failed. Please Try again")
+                setCurrentPage(1)
+            }
         }
 
-        // Here you would make an API call to register the user
-        // For now, we'll just show an alert
-        alert('Registration submitted successfully!');
+        if (userType == 2) {
+            console.log('Teacher Data:', teacherData);
+            try {
+                const response = await dispatch(register({ ...formattedUserData, ...formattedTeacherData })).unwrap()
+                console.log(response.data)
+                alert('Registration submitted successfully!');
+                window.location.replace('/login')
+            } catch (error) {
+                console.log(error)
+                alert("Registration Failed. Please Try again")
+                setCurrentPage(1)
+            }
+        }
+
     };
 
     return (
