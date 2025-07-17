@@ -11,7 +11,7 @@ export const samplePosts = [
             first_name: "Alex",
             last_name: "Morgan",
             image: "https://cdn.pixabay.com/photo/2022/04/06/11/30/girl-7115394_640.jpg",
-            isVerified: true
+            is_verified: true
         },
         media: {
             type: "image",
@@ -62,7 +62,7 @@ export const samplePosts = [
             first_name: "Emma",
             last_name: "Wilson",
             image: "https://cdn.pixabay.com/photo/2022/04/06/11/30/girl-7115394_640.jpg",
-            isVerified: false
+            is_verified: false
         },
         media: {
             type: "video",
@@ -93,7 +93,7 @@ export const samplePosts = [
             first_name: "Alex",
             last_name: "Morgan",
             image: "https://cdn.pixabay.com/photo/2022/04/06/11/30/girl-7115394_640.jpg",
-            isVerified: true
+            is_verified: true
         },
         media: {
             type: "pdf",

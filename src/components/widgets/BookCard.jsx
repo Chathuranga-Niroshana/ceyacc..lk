@@ -371,7 +371,7 @@ const BookCard = ({ book, onRatingChange }) => {
                     onClick={!isExpanded ? toggleExpand : undefined}
                 >
                     <img
-                        src={book.coverImage}
+                        src={book.cover_image}
                         alt={book.title}
                         className={`w-full h-full object-cover ${!isExpanded ? 'transition-transform duration-300 hover:scale-105' : ''
                             }`}

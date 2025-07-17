@@ -1,25 +1,17 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-// Sample user data - in a real app, this would come from props or context
-const sampleUser = {
-    id: '123',
-    name: "John Doe",
-    bio: "Login to your accounts to discover grate learning opportunities, and share your achievements",
-    image: "https://wallpapers.com/images/hd/beautiful-girls-1920-x-1200-picture-s0l86g6mcnu33rd6.jpg",
-    coverImage: "https://images.unsplash.com/photo-1483884105135-c06ea81a7a80?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y292ZXIlMjBnaXJsfGVufDB8fDB8fHww",
-    score: 10900,
-    level: 23
-};
-
-const ProfileCard = ({ user = sampleUser }) => {
+const ProfileCard = () => {
+    const user = useSelector((state) => state.auth.currentUser)
+    // console.log(user)
     const navigate = useNavigate()
     return (
         <div className="max-w-xl mx-auto rounded-2xl overflow-hidden shadow-md bg-white font-sans">
             {/* Cover Image */}
             <div className="h-36 w-full relative overflow-hidden" style={{ backgroundColor: '#8BBAB5' }}>
                 <img
-                    src={user.coverImage || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3"}
+                    src={user?.cover_image || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3"}
                     alt="Cover"
                     className="absolute w-full h-full object-cover"
                 />
@@ -36,10 +28,10 @@ const ProfileCard = ({ user = sampleUser }) => {
                             transform: 'translate(0, -30%)',
                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                         }}>
-                        {user.image ? (
+                        {user?.image ? (
                             <img
-                                src={user.image}
-                                alt={user.name}
+                                src={user?.image}
+                                alt={user?.name}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -50,7 +42,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                                     fontWeight: 'bold',
                                     color: '#666'
                                 }}>
-                                {user.name.charAt(0)}
+                                {user?.name.charAt(0)}
                             </div>
                         )}
                     </div>
@@ -63,7 +55,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                             fontSize: '30px',
                             color: '#222'
                         }}>
-                        {user.name}
+                        {user?.name}
                     </h2>
                     {/* 
                     <p className="text-gray-500"
@@ -71,7 +63,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                             color: '#999',
                             fontSize: '18px'
                         }}>
-                        {user.username}
+                        {user?.username}
                     </p> */}
 
                     <p className="text-red-700 mx-auto"
@@ -82,7 +74,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                             maxWidth: '400px',
                             lineHeight: '1.5'
                         }}>
-                        {user.bio}
+                        {user?.bio}
                     </p>
                 </div>
 
@@ -108,7 +100,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                                 fontSize: '26px',
                                 color: '#222'
                             }}>
-                            {user.score}
+                            {user?.system_score}
                         </div>
                         <div className="text-gray-400"
                             style={{
@@ -125,7 +117,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                                 fontSize: '26px',
                                 color: '#222'
                             }}>
-                            {user.level}
+                            {user?.level.name}
                         </div>
                         <div className="text-gray-400"
                             style={{
@@ -140,7 +132,7 @@ const ProfileCard = ({ user = sampleUser }) => {
                 {/* Profile Button */}
                 <div>
                     <button
-                        onClick={() => navigate(`/users/${user.id}`)}
+                        onClick={() => navigate(`/users/${user?.id}`)}
                         className="text-blue-500 font-bold cursor-pointer bg-transparent border-0"
                         style={{
                             color: '#1DA1F2',

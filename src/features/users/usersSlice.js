@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { mostEngagingUsers } from '../../../database/mostEngagingUsers';
-import { students, teachers } from '../../../database/users';
+import { students } from '../../../database/users';
+import axiosInstance from '../../utils/axiosInstance';
 
 const initialState = {
     mostEngagingUsers: [],
@@ -12,7 +13,9 @@ const initialState = {
 };
 export const fetchTeachers = createAsyncThunk('users/fetchTeachers', async (_, thunkAPI) => {
     try {
-        return teachers
+        const response = await axiosInstance.get('/users/teachers');
+        console.log(response.data);
+        return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
     }
@@ -20,7 +23,8 @@ export const fetchTeachers = createAsyncThunk('users/fetchTeachers', async (_, t
 
 export const fetchStudents = createAsyncThunk('users/fetchStudents', async (_, thunkAPI) => {
     try {
-        return students
+        const response = await axiosInstance.get('/users/students');
+        return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
     }
@@ -28,7 +32,9 @@ export const fetchStudents = createAsyncThunk('users/fetchStudents', async (_, t
 
 export const fetchFollowing = createAsyncThunk('users/fetchFollowing', async (_, thunkAPI) => {
     try {
-        return students
+        // const response = await axiosInstance.get('/users/following');
+        // return response.data
+        return students;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
     }
@@ -36,6 +42,7 @@ export const fetchFollowing = createAsyncThunk('users/fetchFollowing', async (_,
 
 export const fetchMostEngagingUsers = createAsyncThunk('users/fetchMostEngagingUsers', async (_, thunkAPI) => {
     try {
+        // const response = await axiosInstance.get('/users/most-engaging');
         return mostEngagingUsers
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
