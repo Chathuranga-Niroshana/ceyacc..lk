@@ -316,7 +316,7 @@ const PostCard = ({ post }) => {
                             {post?.comments && post?.comments?.length > 0 && (
                                 <div style={{ padding: '8px 16px', margin: '8px', }} className="mt-4">
                                     {post?.comments?.map((comment, index) => (
-                                        <Comment key={index} comment={comment} />
+                                        <Comment key={index + 1} comment={comment} />
                                     ))}
                                 </div>
                             )}
