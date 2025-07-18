@@ -17,6 +17,8 @@ import {
     Zap,
     Flame
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { reactToPost } from "../../features/posts/postSlice";
 
 
 const PostCard = ({ post }) => {
@@ -28,7 +30,7 @@ const PostCard = ({ post }) => {
     const [likeStatus, setLikeStatus] = useState(null);
     const [fullScreen, setFullScreen] = useState(false);
     const [fullScreenMedia, setFullScreenMedia] = useState({ type: null, src: null });
-
+    const dispatch = useDispatch()
     const commentInputRef = useRef(null);
 
     const toggleExpand = (id) => {
@@ -38,8 +40,17 @@ const PostCard = ({ post }) => {
         }));
     };
 
-    const handleLike = (reaction = "Like") => {
-        setLikeStatus(prev => prev === reaction ? null : reaction);
+    const handleLike = async (reaction = "Like") => {
+        const data = {
+            "post_id": post.id,
+            "reaction_type_id": 1
+        }
+        try {
+            const res = await dispatch(reactToPost(data)).unwrap()
+            setLikeStatus(prev => prev === reaction ? null : reaction);
+        } catch (error) {
+            console.log(error)
+        }
     };
 
     const handleComment = (e) => {
@@ -182,14 +193,14 @@ const PostCard = ({ post }) => {
                             <div className="rounded-full bg-blue-500 p-1">
                                 <ThumbsUp className="h-3 w-3 text-white" />
                             </div>
-                            <div className="rounded-full bg-red-500 p-1">
+                            {/* <div className="rounded-full bg-red-500 p-1">
                                 <Heart className="h-3 w-3 text-white" />
                             </div>
                             <div className="rounded-full bg-yellow-500 p-1">
                                 <Flame className="h-3 w-3 text-white" />
-                            </div>
+                            </div> */}
                         </div>
-                        <span className="ml-2">{post?.reactions?.length + (likeStatus ? 1 : 0)}</span>
+                        <span className="ml-2">{post?.reaction_number + (likeStatus ? 1 : 0)}</span>
                     </div>
 
                     <div className="flex gap-4 space-x-4">
@@ -197,10 +208,10 @@ const PostCard = ({ post }) => {
                             onClick={() => setShowComments(!showComments)}
                             className="hover:underline"
                         >
-                            {post?.comments ? post?.comments.length : 0} comments
+                            {post?.comments_number ? post?.comments_number : 0} comments
                         </button>
                         <div className="flex items-center">
-                            <StarRating rating={post?.post_ratings.source || 0} setRating={() => { }} interactive={false} />
+                            <StarRating rating={post?.post_ratings || 0} setRating={() => { }} interactive={false} />
                         </div>
                     </div>
                 </div>
@@ -224,12 +235,12 @@ const PostCard = ({ post }) => {
                         <ThumbsUp className={`h-5 w-5 mr-2 ${likeStatus ? "text-blue-500" : "text-gray-500"}`} />
                         {likeStatus || "Like"}
                     </motion.button>
-
+                    {/* 
                     <ReactionPicker
                         isOpen={showReactions}
                         onClose={() => setShowReactions(false)}
                         onSelect={handleLike}
-                    />
+                    /> */}
                 </div>
 
                 <motion.button

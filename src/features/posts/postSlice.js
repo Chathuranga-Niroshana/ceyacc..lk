@@ -25,6 +25,16 @@ export const createPost = createAsyncThunk('posts/createPost', async (data, thun
     }
 })
 
+export const reactToPost = createAsyncThunk('posts/reactToPost', async (data, thunkAPI) => {
+    try {
+        const response = await axiosInstance.post('/reaction/create', data);
+        return response.data;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.message)
+    }
+})
+
+
 
 export const deletePost = createAsyncThunk('posts/deletePost', async (id, thunkAPI) => {
     try {
