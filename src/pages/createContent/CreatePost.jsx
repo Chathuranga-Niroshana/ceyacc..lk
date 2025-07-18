@@ -102,7 +102,7 @@ const CreatePost = () => {
         setIsSubmitting(true);
 
         try {
-            const res = await dispatch(createPost(data));
+            const res = await dispatch(createPost(data)).unwrap();
             console.log("Post created:", res);
             // Log the data that would be sent to backend
             console.log("Post data:", data);

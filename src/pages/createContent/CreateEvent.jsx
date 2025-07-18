@@ -10,6 +10,8 @@ import {
     Image,
     Send
 } from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { createEvent } from '../../features/events/eventSlice';
 
 const CreateEvent = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +25,7 @@ const CreateEvent = () => {
         audience: "",
     });
     const [errors, setErrors] = useState({});
+    const dispatch = useDispatch()
 
     // Handle text input changes
     const handleChange = (e) => {
@@ -79,34 +82,41 @@ const CreateEvent = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) {
-            return;
-        }
+        if (!validateForm()) return;
 
         setIsSubmitting(true);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const date_time = new Date(`${data.date}T${data.time}`).toISOString();
+            const [media_url_one, media_url_two, media_url_three, media_url_four, media_url_five] = data.media;
 
-            // Log the data that would be sent to backend
-            console.log("Post data:", data);
+            const payload = {
+                ...data,
+                date_time,
+                media_url_one,
+                media_url_two,
+                media_url_three,
+                media_url_four,
+                media_url_five,
+            };
 
-            // Reset form after successful submission
+            const res = await dispatch(createEvent(payload)).unwrap();
+            console.log("Post data:", payload);
+
             setData({
                 title: "",
                 description: "",
                 media: [],
-                isPrivate: false
+                date: "",
+                time: "",
+                location: "",
+                audience: ""
             });
 
-            // Show success notification - in a real app, use a toast library
             alert("Post created successfully!");
-
         } catch (error) {
             console.error("Error creating post:", error);
             alert("Failed to create post. Please try again.");

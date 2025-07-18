@@ -2,13 +2,13 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axiosInstance from '../../utils/axiosInstance';
 
 const initialState = {
-    allPosts: [],
+    allEvents: [],
     loading: false,
     error: null
 };
-export const fetchPost = createAsyncThunk('posts/fetchPost', async (_, thunkAPI) => {
+export const fetchEvents = createAsyncThunk('events/fetchEvents', async (_, thunkAPI) => {
     try {
-        const response = await axiosInstance.get('/posts/get_all');
+        const response = await axiosInstance.get('/events/get_all');
         console.log(response.data);
         return response.data;
     } catch (error) {
@@ -16,9 +16,9 @@ export const fetchPost = createAsyncThunk('posts/fetchPost', async (_, thunkAPI)
     }
 })
 
-export const createPost = createAsyncThunk('posts/createPost', async (data, thunkAPI) => {
+export const createEvent = createAsyncThunk('events/createEvent', async (data, thunkAPI) => {
     try {
-        const response = await axiosInstance.post('/posts/create', data);
+        const response = await axiosInstance.post('/events/create', data);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
@@ -26,9 +26,9 @@ export const createPost = createAsyncThunk('posts/createPost', async (data, thun
 })
 
 
-export const deletePost = createAsyncThunk('posts/deletePost', async (id, thunkAPI) => {
+export const deletePost = createAsyncThunk('events/deletePost', async (id, thunkAPI) => {
     try {
-        const response = await axiosInstance.delete(`/posts/delete/${id}`);
+        const response = await axiosInstance.delete(`/events/delete/${id}`);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
@@ -37,20 +37,20 @@ export const deletePost = createAsyncThunk('posts/deletePost', async (id, thunkA
 
 
 
-const postSlice = createSlice({
-    name: 'posts',
+const eventSlice = createSlice({
+    name: 'events',
     initialState,
     extraReducers: (builder) => {
         builder
-            .addCase(fetchPost.pending, (state) => {
+            .addCase(fetchEvents.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchPost.fulfilled, (state, action) => {
+            .addCase(fetchEvents.fulfilled, (state, action) => {
                 state.loading = false;
-                state.allPosts = action.payload;
+                state.allEvents = action.payload;
             })
-            .addCase(fetchPost.rejected, (state, action) => {
+            .addCase(fetchEvents.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
@@ -58,4 +58,4 @@ const postSlice = createSlice({
     },
 });
 
-export default postSlice.reducer;
+export default eventSlice.reducer;
