@@ -12,7 +12,7 @@ const Home = () => {
     useEffect(() => {
         fetchPost()(dispatch).then((result) => {
             if (fetchPost.fulfilled.match(result)) {
-                console.log('Posts fetched successfully:', result.payload);
+                // console.log('Posts fetched successfully:', result.payload);
             } else {
                 console.error('Failed to fetch posts:', result.error.message);
             }

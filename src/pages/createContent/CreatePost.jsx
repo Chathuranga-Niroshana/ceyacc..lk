@@ -13,6 +13,8 @@ import {
     LockOpen,
     Send
 } from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { createPost } from '../../features/posts/postSlice';
 
 const CreatePost = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,6 +26,7 @@ const CreatePost = () => {
         isPrivate: false
     });
     const [errors, setErrors] = useState({});
+    const dispatch = useDispatch()
 
     // Handle text input changes
     const handleChange = (e) => {
@@ -99,9 +102,8 @@ const CreatePost = () => {
         setIsSubmitting(true);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
+            const res = await dispatch(createPost(data)).unwrap();
+            console.log("Post created:", res);
             // Log the data that would be sent to backend
             console.log("Post data:", data);
 

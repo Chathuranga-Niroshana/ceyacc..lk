@@ -27,9 +27,9 @@ const tabs = [
     { icon: <SchoolTwoToneIcon />, name: "Course" },
     { icon: <CelebrationTwoToneIcon />, name: "Event" },
     { icon: <QuizTwoToneIcon />, name: "Quiz" },
-    { icon: <WorkTwoToneIcon />, name: "Job" },
+    // { icon: <WorkTwoToneIcon />, name: "Job" },
     { icon: <HistoryEduTwoToneIcon />, name: "Exam Paper" },
-    { icon: <LiveTvTwoToneIcon />, name: "Live Content" },
+    // { icon: <LiveTvTwoToneIcon />, name: "Live Content" },
 ];
 
 const CreateContent = () => {

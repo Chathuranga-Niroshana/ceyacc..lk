@@ -26,7 +26,7 @@ const SearchField = ({ onSearch = () => null }) => {
             size="large"
             style={searchStyle}
             className="custom-search-input"
-            buttonStyle={searchButtonStyle}
+        // buttonStyle={searchButtonStyle}
         />
     )
 }

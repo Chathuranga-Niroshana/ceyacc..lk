@@ -53,16 +53,6 @@ const MostEngagingUsers = () => {
                     <MostEngagingUserCard key={user.id} user={user} />
                 ))}
             </motion.div>
-
-            <style jsx>{`
-                .grid::-webkit-scrollbar {
-                    display: none;
-                }
-                .grid {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-            `}</style>
         </motion.div>
     );
 };

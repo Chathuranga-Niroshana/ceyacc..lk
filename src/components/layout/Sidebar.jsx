@@ -25,16 +25,16 @@ const Sidebar = () => {
 
     const menuItems = [
         { id: 'create', label: 'Create Content', path: '/create-content', icon: <CreateIcon /> },
-        { id: 'live', label: 'Live Classes', path: '/live', icon: <LiveTvIcon /> },
+        // { id: 'live', label: 'Live Classes', path: '/live', icon: <LiveTvIcon /> },
         { id: 'courses', label: 'Courses', path: '/courses/', icon: <SchoolIcon /> },
         { id: 'quizzes', label: 'Tests / Quizzes', path: '/quizzes', icon: <QuizIcon /> },
         { id: 'papers', label: 'Exam Papers', path: '/papers', icon: <DescriptionIcon /> },
         { id: 'events', label: 'Events', path: '/events', icon: <EventIcon /> },
         // { id: 'schools', label: 'Schools', path: '/schools', icon: <BusinessIcon /> },
-        { id: 'jobs', label: 'Jobs', path: '/jobs', icon: <WorkIcon /> },
-        { id: 'connect', label: 'Connect To Users', path: '/users/', icon: <PeopleIcon /> },
+        // { id: 'jobs', label: 'Jobs', path: '/jobs', icon: <WorkIcon /> },
+        { id: 'connect', label: 'Users', path: '/users/', icon: <PeopleIcon /> },
         // { id: 'leaderboard', label: 'Leader Board', path: '/leader-board', icon: <LeaderboardIcon /> },
-        { id: 'settings', label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
+        // { id: 'settings', label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
     ];
 
     const sidebarVariants = {

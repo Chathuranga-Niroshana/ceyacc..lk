@@ -6,58 +6,49 @@ const initialState = {
     loading: false,
     error: null
 };
-export const fetchPost = createAsyncThunk('post/fetchPost', async (_, thunkAPI) => {
+export const fetchPost = createAsyncThunk('posts/fetchPost', async (_, thunkAPI) => {
     try {
         const response = await axiosInstance.get('/posts/get_all');
-        console.log(response.data);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
     }
 })
 
-// export const fetchStudents = createAsyncThunk('post/fetchStudents', async (_, thunkAPI) => {
-//     try {
-//         const response = await axiosInstance.get('/posts/students');
-//         return response.data;
-//     } catch (error) {
-//         return thunkAPI.rejectWithValue(error.message)
-//     }
-// })
+export const createPost = createAsyncThunk('posts/createPost', async (data, thunkAPI) => {
+    try {
+        const response = await axiosInstance.post('/posts/create', data);
+        return response.data;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.message)
+    }
+})
 
-// export const fetchFollowing = createAsyncThunk('post/fetchFollowing', async (_, thunkAPI) => {
-//     try {
-//         // const response = await axiosInstance.get('/posts/following');
-//         // return response.data
-//         return students;
-//     } catch (error) {
-//         return thunkAPI.rejectWithValue(error.message)
-//     }
-// })
+export const reactToPost = createAsyncThunk('posts/reactToPost', async (data, thunkAPI) => {
+    try {
+        const response = await axiosInstance.post('/reaction/create', data);
+        return response.data;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.message)
+    }
+})
 
-// export const fetchMostEngagingUsers = createAsyncThunk('post/fetchMostEngagingUsers', async (_, thunkAPI) => {
-//     try {
-//         // const response = await axiosInstance.get('/posts/most-engaging');
-//         return mostEngagingUsers
-//     } catch (error) {
-//         return thunkAPI.rejectWithValue(error.message)
-//     }
-// })
+
+
+export const deletePost = createAsyncThunk('posts/deletePost', async (id, thunkAPI) => {
+    try {
+        const response = await axiosInstance.delete(`/posts/delete/${id}`);
+        return response.data;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.message)
+    }
+})
+
+
 
 const postSlice = createSlice({
     name: 'posts',
     initialState,
-    // reducers: {
-    //     clearStudents(state) {
-    //         state.students = [];
-    //     },
-    //     clearTeachers(state) {
-    //         state.teachers = [];
-    //     },
-    //     clearFollowing(state) {
-    //         state.following = [];
-    //     },
-    // },
     extraReducers: (builder) => {
         builder
             .addCase(fetchPost.pending, (state) => {
@@ -75,10 +66,5 @@ const postSlice = createSlice({
 
     },
 });
-// export const {
-//     clearFollowing,
-//     clearStudents,
-//     clearTeachers,
-// } = postSlice.actions
 
 export default postSlice.reducer;
