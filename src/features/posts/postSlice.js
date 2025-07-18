@@ -9,7 +9,6 @@ const initialState = {
 export const fetchPost = createAsyncThunk('posts/fetchPost', async (_, thunkAPI) => {
     try {
         const response = await axiosInstance.get('/posts/get_all');
-        console.log(response.data);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)

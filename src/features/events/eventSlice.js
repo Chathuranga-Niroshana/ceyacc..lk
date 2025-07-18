@@ -8,8 +8,8 @@ const initialState = {
 };
 export const fetchEvents = createAsyncThunk('events/fetchEvents', async (_, thunkAPI) => {
     try {
-        const response = await axiosInstance.get('/events/get_all');
-        console.log(response.data);
+        const response = await axiosInstance.get('/events/get_active_events');
+        // console.log(response.data);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
