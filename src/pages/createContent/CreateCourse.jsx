@@ -5,6 +5,7 @@ import InputField from '../../components/input/InputField';
 import MainButton from '../../components/button/MainButton';
 import MediaInputField from '../../components/input/MediaInputField';
 import { createCourse, clearError } from '../../features/courses/coursesSlice';
+import cloudinaryUpload from '../../utils/cloudinaryInstance';
 
 // Icons
 import {
@@ -34,6 +35,8 @@ const CreateCourse = () => {
         applicableLevel: 10,
     });
     const [errors, setErrors] = useState({});
+    const [uploadProgress, setUploadProgress] = useState({ thumbnail: [], media: [], resources: [] });
+    const [uploading, setUploading] = useState({ thumbnail: false, media: false, resources: false });
     const dispatch = useDispatch();
 
     // Get state from Redux
@@ -65,22 +68,30 @@ const CreateCourse = () => {
     };
 
     // Handle media files
-    const handleMediaChange = (files, type = 'media') => {
-        // In a real application, these would be uploaded to your backend
-        // and you would receive URLs in response
-
-        const simulateUpload = (file) => {
-            // Create a mock URL
-            return `https://your-backend.com/uploads/${file.name.replace(/\s+/g, '-')}`;
-        };
-
-        const mediaUrls = files.map(simulateUpload);
-
+    const handleMediaChange = async (files, type = 'media') => {
+        setUploading(prev => ({ ...prev, [type]: true }));
+        const progressArr = Array.from(files).map(() => 0);
+        setUploadProgress(prev => ({ ...prev, [type]: progressArr }));
+        const uploadPromises = Array.from(files).map((file, idx) =>
+            cloudinaryUpload(file, (progress) => {
+                setUploadProgress(prev => {
+                    const updated = { ...prev };
+                    updated[type][idx] = progress;
+                    return updated;
+                });
+            })
+        );
+        const mediaUrls = (await Promise.all(uploadPromises)).filter(Boolean);
         setData(prev => ({
             ...prev,
             [type]: [...prev[type], ...mediaUrls]
         }));
+        setUploading(prev => ({ ...prev, [type]: false }));
     };
+
+    // Handle resource files specifically
+    const handleResourceChange = (files) => handleMediaChange(files, 'resources');
+    const handleThumbnailChange = (files) => handleMediaChange(files, 'thumbnail');
 
     // Clear error when component mounts or when error changes
     useEffect(() => {
@@ -97,11 +108,7 @@ const CreateCourse = () => {
         }
     }, [data, dispatch]);
 
-    // Handle resource files specifically
-    const handleResourceChange = (files) => {
-        handleMediaChange(files, 'resources');
-    };
-
+    // Toggle privacy
     const togglePrivacy = () => {
         setIsPrivate(!isPrivate);
         setData(prev => ({
@@ -186,7 +193,7 @@ const CreateCourse = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) {
+        if (!validateForm() || uploading.thumbnail || uploading.media || uploading.resources) {
             return;
         }
 
@@ -256,11 +263,19 @@ const CreateCourse = () => {
                             Thumbnail Image
                         </label>
                         <MediaInputField
-                            onChange={(files) => handleMediaChange(files, 'thumbnail')}
+                            onChange={handleThumbnailChange}
                             maxFiles={1}
                             value={data.thumbnail}
                         />
-
+                        {/* Upload Progress */}
+                        {uploading.thumbnail && uploadProgress.thumbnail.length > 0 && (
+                            <div className="mt-2">
+                                {uploadProgress.thumbnail.map((progress, idx) => (
+                                    <progress key={idx} value={progress} max="100" className="w-full mb-1">{progress}%</progress>
+                                ))}
+                                <span className="text-xs text-blue-500">Uploading thumbnail...</span>
+                            </div>
+                        )}
                         {/* Preview of media URLs */}
                         {data.thumbnail.length > 0 && (
                             <div className="mt-3">
@@ -334,7 +349,15 @@ const CreateCourse = () => {
                             maxFiles={10}
                             value={data.media}
                         />
-
+                        {/* Upload Progress */}
+                        {uploading.media && uploadProgress.media.length > 0 && (
+                            <div className="mt-2">
+                                {uploadProgress.media.map((progress, idx) => (
+                                    <progress key={idx} value={progress} max="100" className="w-full mb-1">{progress}%</progress>
+                                ))}
+                                <span className="text-xs text-blue-500">Uploading media...</span>
+                            </div>
+                        )}
                         {/* Preview of media URLs */}
                         {data.media.length > 0 && (
                             <div className="mt-3">
@@ -361,7 +384,15 @@ const CreateCourse = () => {
                             maxFiles={15}
                             value={data.resources}
                         />
-
+                        {/* Upload Progress */}
+                        {uploading.resources && uploadProgress.resources.length > 0 && (
+                            <div className="mt-2">
+                                {uploadProgress.resources.map((progress, idx) => (
+                                    <progress key={idx} value={progress} max="100" className="w-full mb-1">{progress}%</progress>
+                                ))}
+                                <span className="text-xs text-blue-500">Uploading resources...</span>
+                            </div>
+                        )}
                         {/* Preview of resource URLs */}
                         {data.resources.length > 0 && (
                             <div className="mt-3">
@@ -549,10 +580,10 @@ const CreateCourse = () => {
                     {/* Submit Button */}
                     <MainButton
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || uploading.thumbnail || uploading.media || uploading.resources}
                         className="mt-6"
                         icon={<Send />}
-                        label={loading ? "Creating Course..." : "Create Course"}
+                        label={loading ? "Creating Course..." : (uploading.thumbnail || uploading.media || uploading.resources) ? "Uploading..." : "Create Course"}
                     />
                 </div>
             </form>

@@ -5,6 +5,7 @@ import InputField from '../../components/input/InputField';
 import MainButton from '../../components/button/MainButton';
 import MediaInputField from '../../components/input/MediaInputField';
 import { createQuiz, clearError } from '../../features/quizzes/quizzesSlice';
+import cloudinaryUpload from '../../utils/cloudinaryInstance';
 
 // Icons
 import {
@@ -24,6 +25,8 @@ const CreateQuiz = () => {
         media: []
     });
     const [errors, setErrors] = useState({});
+    const [uploadProgress, setUploadProgress] = useState([]); // Progress for each file
+    const [uploading, setUploading] = useState(false); // True if any file is uploading
     const dispatch = useDispatch();
 
     // Get state from Redux
@@ -74,22 +77,25 @@ const CreateQuiz = () => {
     };
 
     // Handle media files
-    const handleMediaChange = (files) => {
-        // In a real application, these would be uploaded to your backend
-        // and you would receive URLs in response
-
-        const simulateUpload = (file) => {
-            // Create a mock URL
-            // In a real app, this would be the URL returned from your server
-            return `https://your-backend.com/uploads/${file.name.replace(/\s+/g, '-')}`;
-        };
-
-        const mediaUrls = files.map(simulateUpload);
-
+    const handleMediaChange = async (files) => {
+        setUploading(true);
+        const progressArr = Array.from(files).map(() => 0);
+        setUploadProgress(progressArr);
+        const uploadPromises = Array.from(files).map((file, idx) =>
+            cloudinaryUpload(file, (progress) => {
+                setUploadProgress(prev => {
+                    const updated = [...prev];
+                    updated[idx] = progress;
+                    return updated;
+                });
+            })
+        );
+        const mediaUrls = (await Promise.all(uploadPromises)).filter(Boolean);
         setData(prev => ({
             ...prev,
-            media: [...prev.media, ...mediaUrls]
+            media: mediaUrls
         }));
+        setUploading(false);
     };
 
     // Clear error when component mounts or when error changes
@@ -147,7 +153,7 @@ const CreateQuiz = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) {
+        if (!validateForm() || uploading) {
             return;
         }
 
@@ -267,7 +273,15 @@ const CreateQuiz = () => {
                             maxFiles={3}
                             value={data.media}
                         />
-
+                        {/* Upload Progress */}
+                        {uploading && uploadProgress.length > 0 && (
+                            <div className="mt-2">
+                                {uploadProgress.map((progress, idx) => (
+                                    <progress key={idx} value={progress} max="100" className="w-full mb-1">{progress}%</progress>
+                                ))}
+                                <span className="text-xs text-blue-500">Uploading files...</span>
+                            </div>
+                        )}
                         {/* Preview of media URLs */}
                         {data.media && data.media.length > 0 && (
                             <div className="mt-3">
@@ -334,10 +348,10 @@ const CreateQuiz = () => {
                     {/* Submit Button */}
                     <MainButton
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || uploading}
                         className="mt-4"
                         icon={<Send />}
-                        label={loading ? "Creating Quiz..." : "Create Quiz"}
+                        label={loading ? "Creating Quiz..." : uploading ? "Uploading..." : "Create Quiz"}
                     />
                 </div>
             </form>

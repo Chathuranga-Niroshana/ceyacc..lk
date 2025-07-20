@@ -16,6 +16,7 @@ const Events = React.lazy(() => import("./pages/events/Events"))
 const Jobs = React.lazy(() => import("./pages/jobs/Jobs"))
 const Settings = React.lazy(() => import("./pages/settings/Settings"))
 const UserProfile = React.lazy(() => import("./pages/userProfile/UserProfile"))
+const EditProfile = React.lazy(() => import("./pages/userProfile/EditProfile"));
 
 
 const routes = [
@@ -26,6 +27,7 @@ const routes = [
     { path: '/library', exact: true, name: 'Library', element: Library },
     { path: '/users', exact: true, name: 'Users', element: Users },
     { path: '/profile', exact: true, name: 'Users', element: UserProfile },
+    { path: '/profile/edit', exact: true, name: 'EditProfile', element: EditProfile },
     { path: '/create-content', exact: true, name: 'CreateContent', element: CreateContent },
     { path: '/live', exact: true, name: 'LiveClasses', element: LiveClasses },
     { path: '/quizzes', exact: true, name: 'Quizzes', element: Quizzes },

@@ -84,11 +84,29 @@ const QuizCard = ({ quiz, index }) => {
                 {/* Media section */}
                 <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
                     {quiz.media_url_one ? (
-                        <img
-                            src={quiz.media_url_one}
-                            alt={quiz.title}
-                            className="w-full h-full object-cover"
-                        />
+                        quiz.media_url_one.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                            <img
+                                src={quiz.media_url_one}
+                                alt={quiz.title}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : quiz.media_url_one.match(/\.(mp4|webm|mov)$/i) ? (
+                            <video
+                                src={quiz.media_url_one}
+                                controls
+                                className="w-full h-full object-cover"
+                            />
+                        ) : quiz.media_url_one.match(/\.pdf$/i) ? (
+                            <iframe
+                                src={quiz.media_url_one}
+                                title="PDF"
+                                className="w-full h-full"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                Unsupported media type
+                            </div>
+                        )
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
                             <BookOpen size={48} className="text-red-400" />

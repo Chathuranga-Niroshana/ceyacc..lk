@@ -8,6 +8,7 @@ import { districts } from '../../data/districts';
 import { useDispatch } from 'react-redux';
 import { register } from '../../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
+import cloudinaryUpload from '../../utils/cloudinaryInstance';
 
 const Register = () => {
     const dispatch = useDispatch()
@@ -24,6 +25,10 @@ const Register = () => {
         role: 1,
         sex: 'male',
     });
+
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
 
     const [errors, setErrors] = useState({});
 
@@ -95,11 +100,30 @@ const Register = () => {
 
     // Handle final submission
     const handleSubmit = async () => {
+        // Upload image to cloudinary and get the url
+        let imageUrl = null;
+        if (userData.image) {
+            setUploadProgress(10); // Start progress
+            imageUrl = await cloudinaryUpload(userData.image, setUploadProgress);
+        }
+        if (imageUrl) {
+            userData.image = imageUrl;
+        }
+        // Upload cover image to cloudinary and get the url
+        let coverImageUrl = null;
+        if (userData.cover_image) {
+            setUploadProgress(10); // Start progress
+            coverImageUrl = await cloudinaryUpload(userData.cover_image, setUploadProgress);
+        }
+        if (coverImageUrl) {
+            userData.cover_image = coverImageUrl;
+        }
+
         console.log('Submitting registration data:');
         console.log('User Data:', userData);
         const formattedUserData = {
             image: userData.image,
-            cover_image: null,
+            cover_image: userData.cover_image,
             name: userData.name,
             bio: "",
             email: userData.email,

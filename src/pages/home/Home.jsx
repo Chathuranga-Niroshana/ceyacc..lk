@@ -29,9 +29,11 @@ const Home = () => {
 
             {/* posts */}
             <div className='flex flex-col justify-center items-center gap-10 mt-10'>
-                {posts?.map((post) => (
-                    <PostCard key={post.id} post={post} />
-                ))}
+                {posts && [...posts]
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .map((post) => (
+                        <PostCard key={post.id} post={post} />
+                    ))}
             </div>
         </div>
     )

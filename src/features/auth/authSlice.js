@@ -66,6 +66,19 @@ export const getUserProfile = createAsyncThunk('auth/getUserProfile', async (_, 
     }
 });
 
+// UPDATE USER PROFILE
+export const updateUserProfile = createAsyncThunk(
+    'auth/updateUserProfile',
+    async ({ userId, updateData }, thunkAPI) => {
+        try {
+            const response = await axiosInstance.put(`/users/update/${userId}`, updateData);
+            return response.data;
+        } catch (error) {
+            return thunkAPI.rejectWithValue(error.response?.data?.detail || error.message);
+        }
+    }
+);
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -130,6 +143,21 @@ const authSlice = createSlice({
             .addCase(getUserProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to fetch profile';
+            })
+
+            // Update User Profile
+            .addCase(updateUserProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.userProfile = action.payload;
+                state.error = null;
+            })
+            .addCase(updateUserProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to update profile';
             });
     },
 });

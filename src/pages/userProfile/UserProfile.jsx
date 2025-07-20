@@ -6,9 +6,11 @@ import {
     Verified, Star, Users, Clock, Loader2,
     LogOutIcon
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const UserProfile = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { userProfile, loading, error } = useSelector((state) => state.auth);
 
     useEffect(() => {
@@ -82,26 +84,34 @@ const UserProfile = () => {
                             {`Welcome back, ${userProfile.name || 'User'}!`}
                         </p>
                     </div>
-                    <button
-                        onClick={() => dispatch(getUserProfile())}
-                        disabled={loading}
-                        className="px-4 py-2 bg-white/80 hover:bg-white text-gray-700 rounded-lg transition-colors flex items-center gap-2 shadow-md border border-gray-200"
-                    >
-                        {loading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <User className="w-4 h-4" />
-                        )}
-                        Refresh
-                    </button>
-                    <button
-                        onClick={() => dispatch(logout())}
-                        disabled={loading}
-                        className="px-4 py-2 bg-red-400/80 hover:bg-red-400 text-gray-700 rounded-lg transition-colors flex items-center gap-2 shadow-md border border-gray-200"
-                    >
-                        <LogOutIcon />
-                        Logout
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => dispatch(getUserProfile())}
+                            disabled={loading}
+                            className="px-4 py-2 bg-white/80 hover:bg-white text-gray-700 rounded-lg transition-colors flex items-center gap-2 shadow-md border border-gray-200"
+                        >
+                            {loading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <User className="w-4 h-4" />
+                            )}
+                            Refresh
+                        </button>
+                        <button
+                            onClick={() => navigate('/profile/edit')}
+                            className="px-4 py-2 bg-blue-500/80 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 shadow-md border border-blue-200"
+                        >
+                            Edit Profile
+                        </button>
+                        <button
+                            onClick={() => dispatch(logout())}
+                            disabled={loading}
+                            className="px-4 py-2 bg-red-400/80 hover:bg-red-400 text-gray-700 rounded-lg transition-colors flex items-center gap-2 shadow-md border border-gray-200"
+                        >
+                            <LogOutIcon />
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </div>
 

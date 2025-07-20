@@ -26,6 +26,8 @@ const tabs = [
 
 const Users = () => {
     const [value, setValue] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredUsers, setFilteredUsers] = useState([]);
     const previousValue = useRef(0);
     const dispatch = useDispatch();
 
@@ -35,8 +37,6 @@ const Users = () => {
         switch (tabIndex) {
             case 0: return students;
             case 1: return teachers;
-            // case 2: return []; // assuming My School has no data currently
-            // case 3: return following;
             default: return [];
         }
     };
@@ -45,7 +45,6 @@ const Users = () => {
         switch (tabIndex) {
             case 0: return dispatch(fetchStudents());
             case 1: return dispatch(fetchTeachers());
-            // case 3: return dispatch(fetchFollowing());
             default: return;
         }
     }, [dispatch]);
@@ -54,7 +53,6 @@ const Users = () => {
         switch (tabIndex) {
             case 0: return dispatch(clearStudents());
             case 1: return dispatch(clearTeachers());
-            // case 3: return dispatch(clearFollowing());
             default: return;
         }
     }, [dispatch]);
@@ -70,8 +68,26 @@ const Users = () => {
         previousValue.current = value;
     }, [value]);
 
+    // Filter users based on search term
+    useEffect(() => {
+        const users = getUsersByTab(value);
+        if (!searchTerm.trim()) {
+            setFilteredUsers(users);
+        } else {
+            const lower = searchTerm.toLowerCase();
+            setFilteredUsers(users.filter(user =>
+                (user.name && user.name.toLowerCase().includes(lower)) ||
+                (user.email && user.email.toLowerCase().includes(lower))
+            ));
+        }
+    }, [searchTerm, value, students, teachers]);
+
     const handleChange = (event, newValue) => {
         setValue(newValue);
+    };
+
+    const handleSearch = (value) => {
+        setSearchTerm(value);
     };
 
     return (
@@ -83,7 +99,7 @@ const Users = () => {
 
             {/* Tabs and Search */}
             <div className='flex flex-row justify-center items-center gap-2 mb-2'>
-                <SearchField />
+                <SearchField onSearch={handleSearch} />
             </div>
             <div className='flex flex-row w-full justify-center items-center gap-2 mb-2'>
                 <HeaderTabs tabs={tabs} value={value} handleChange={handleChange} />
@@ -91,7 +107,7 @@ const Users = () => {
 
             {/* Users List */}
             <div className='flex flex-col items-center gap-10'>
-                {getUsersByTab(value).map((user) => (
+                {filteredUsers.map((user) => (
                     <UserCard user={user} key={user.id} />
                 ))}
             </div>

@@ -17,6 +17,7 @@ import { UploadFile, Image, School, MenuBook, NoteAdd } from '@mui/icons-materia
 import { examTypes, subjectStreams } from '../../data/examTypes';
 import { useDispatch, useSelector } from 'react-redux';
 import { createExamPaper, clearError } from '../../features/examPapers/examPapersSlice';
+import cloudinaryUpload from '../../utils/cloudinaryInstance';
 
 const CreateExamPaper = () => {
     const dispatch = useDispatch();
@@ -36,6 +37,8 @@ const CreateExamPaper = () => {
     const [examType, setExamType] = useState('ol');
     const [subjectStream, setSubjectStream] = useState('science');
     const [subjects, setSubjects] = useState([]);
+    const [uploadProgress, setUploadProgress] = useState([]); // Progress for each file
+    const [uploading, setUploading] = useState(false); // True if any file is uploading
 
     // Animation variants
     const containerVariants = {
@@ -122,22 +125,25 @@ const CreateExamPaper = () => {
     };
 
     // Handle media files
-    const handleMediaChange = (files) => {
-        // In a real application, these would be uploaded to your backend
-        // and you would receive URLs in response
-
-        const simulateUpload = (file) => {
-            // Create a mock URL
-            // In a real app, this would be the URL returned from your server
-            return `https://your-backend.com/uploads/${file.name.replace(/\s+/g, '-')}`;
-        };
-
-        const mediaUrls = files.map(simulateUpload);
-
+    const handleMediaChange = async (files) => {
+        setUploading(true);
+        const progressArr = Array.from(files).map(() => 0);
+        setUploadProgress(progressArr);
+        const uploadPromises = Array.from(files).map((file, idx) =>
+            cloudinaryUpload(file, (progress) => {
+                setUploadProgress(prev => {
+                    const updated = [...prev];
+                    updated[idx] = progress;
+                    return updated;
+                });
+            })
+        );
+        const mediaUrls = (await Promise.all(uploadPromises)).filter(Boolean);
         setData(prev => ({
             ...prev,
-            media: [...prev.media, ...mediaUrls]
+            media: mediaUrls
         }));
+        setUploading(false);
     };
 
     // Clear error when component mounts or when user starts typing
@@ -179,7 +185,7 @@ const CreateExamPaper = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) {
+        if (!validateForm() || uploading) {
             return;
         }
 
@@ -406,7 +412,15 @@ const CreateExamPaper = () => {
                             maxFiles={3}
                             value={data.media}
                         />
-
+                        {/* Upload Progress */}
+                        {uploading && uploadProgress.length > 0 && (
+                            <div className="mt-2">
+                                {uploadProgress.map((progress, idx) => (
+                                    <progress key={idx} value={progress} max="100" className="w-full mb-1">{progress}%</progress>
+                                ))}
+                                <span className="text-xs text-blue-500">Uploading files...</span>
+                            </div>
+                        )}
                         {/* Preview of media URLs */}
                         <AnimatePresence>
                             {data.media && data.media.length > 0 && (
@@ -443,10 +457,10 @@ const CreateExamPaper = () => {
                     >
                         <MainButton
                             type="submit"
-                            disabled={isSubmitting || loading}
+                            disabled={isSubmitting || loading || uploading}
                             className="mt-4 w-full"
                             icon={<UploadFile />}
-                            label={isSubmitting || loading ? "Creating Exam Paper..." : "Create Exam Paper"}
+                            label={isSubmitting || loading ? "Creating Exam Paper..." : uploading ? "Uploading..." : "Create Exam Paper"}
                         />
                     </motion.div>
                 </motion.div>
