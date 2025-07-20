@@ -8,6 +8,7 @@ const user = localStorage.getItem('user');
 const initialState = {
     currentUser: user ? JSON.parse(user) : null,
     token: token || null,
+    userProfile: null,
     loading: false,
     error: null,
 };
@@ -48,9 +49,20 @@ export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
     try {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        window.location.href = '/login';
         return true;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message);
+    }
+});
+
+// GET USER PROFILE
+export const getUserProfile = createAsyncThunk('auth/getUserProfile', async (_, thunkAPI) => {
+    try {
+        const response = await axiosInstance.get('/auth/profile');
+        return response.data;
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.response?.data?.detail || error.message);
     }
 });
 
@@ -103,6 +115,21 @@ const authSlice = createSlice({
                 state.currentUser = null;
                 state.loading = false;
                 state.error = null;
+            })
+
+            // Get User Profile
+            .addCase(getUserProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.userProfile = action.payload;
+                state.error = null;
+            })
+            .addCase(getUserProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to fetch profile';
             });
     },
 });

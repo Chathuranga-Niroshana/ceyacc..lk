@@ -17,6 +17,7 @@ const Jobs = React.lazy(() => import("./pages/jobs/Jobs"))
 const Settings = React.lazy(() => import("./pages/settings/Settings"))
 const UserProfile = React.lazy(() => import("./pages/userProfile/UserProfile"))
 
+
 const routes = [
     { path: '/', exact: true, name: 'Home', element: Home },
     { path: '/login', exact: true, name: 'Login', element: Login },
@@ -24,7 +25,7 @@ const routes = [
     { path: '/forgot-password', exact: true, name: 'ForgetPassword', element: ForgetPassword },
     { path: '/library', exact: true, name: 'Library', element: Library },
     { path: '/users', exact: true, name: 'Users', element: Users },
-    { path: '/users/:id', exact: true, name: 'Users', element: UserProfile },
+    { path: '/profile', exact: true, name: 'Users', element: UserProfile },
     { path: '/create-content', exact: true, name: 'CreateContent', element: CreateContent },
     { path: '/live', exact: true, name: 'LiveClasses', element: LiveClasses },
     { path: '/quizzes', exact: true, name: 'Quizzes', element: Quizzes },

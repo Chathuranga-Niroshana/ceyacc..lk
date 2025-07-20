@@ -42,8 +42,8 @@ export const fetchFollowing = createAsyncThunk('users/fetchFollowing', async (_,
 
 export const fetchMostEngagingUsers = createAsyncThunk('users/fetchMostEngagingUsers', async (_, thunkAPI) => {
     try {
-        // const response = await axiosInstance.get('/users/most-engaging');
-        return mostEngagingUsers
+        const response = await axiosInstance.get('/users/most_engaging');
+        return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.message)
     }

@@ -31,8 +31,8 @@ const pages = [
     { id: 1, name: 'Home', icon: <HomeTwoToneIcon />, path: '/' },
     { id: 2, name: 'Library', icon: <ImportContactsTwoToneIcon />, path: '/library' },
     { id: 3, name: 'Users', icon: <PeopleAltTwoToneIcon />, path: '/users' },
-    { id: 4, name: 'Messages', icon: <ModeCommentTwoToneIcon />, path: '/messages' },
-    { id: 5, name: 'Notifications', icon: <NotificationsNoneTwoToneIcon />, path: '/notifications' },
+    // { id: 4, name: 'Messages', icon: <ModeCommentTwoToneIcon />, path: '/messages' },
+    // { id: 5, name: 'Notifications', icon: <NotificationsNoneTwoToneIcon />, path: '/notifications' },
     { id: 6, name: 'Profile', icon: <AccountCircleTwoToneIcon />, path: '/profile' },
 ];
 
