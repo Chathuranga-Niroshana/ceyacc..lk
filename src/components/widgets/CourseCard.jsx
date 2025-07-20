@@ -4,11 +4,16 @@ import * as THREE from 'three';
 import { Card, CardContent, CardActionArea, Typography, Chip, Box, Container, Grid } from '@mui/material';
 import { BookOpen, Clock, ArrowRight, Star } from 'lucide-react';
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onClick, interactionData }) => {
     const navigate = useNavigate();
     const [isHovered, setIsHovered] = useState(false);
 
     const handleClick = () => {
+        // Call the onClick prop if provided (for tracking)
+        if (onClick) {
+            onClick();
+        }
+        // Navigate to course details
         navigate(`/courses/${course.id}`);
     };
 

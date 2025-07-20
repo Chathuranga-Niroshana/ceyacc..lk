@@ -1,66 +1,52 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { ChevronLeft, Play, Pause, FileText, Award, CheckCircle, X, Download, Lock, Calendar, Clock, User, Bookmark, CheckSquare } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCourseById } from '../../features/courses/coursesSlice';
 
-// Sample course data based on your CreateCourse structure
-const sampleCourse = {
-    id: "1",
-    thumbnail: ["https://bairesdev.mo.cloudinary.net/blog/2023/08/What-Is-JavaScript-Used-For.jpg?tx=w_1920,q_auto"],
-    title: "Introduction to Web Development",
-    description: "Learn the basics of HTML, CSS, and JavaScript to build your first website. This comprehensive course covers everything from basic HTML tags to advanced JavaScript concepts. By the end of this course, you'll be able to create responsive websites from scratch.",
-    media: [
-        "https://example.com/lesson1-intro.mp4",
-        "https://example.com/lesson2-html-basics.mp4",
-        "https://example.com/lesson3-css-styling.mp4",
-        "https://example.com/lesson4-javascript-intro.mp4"
-    ],
-    resources: [
-        "https://example.com/html-cheatsheet.pdf",
-        "https://example.com/css-guide.pdf",
-        "https://example.com/javascript-reference.pdf"
-    ],
-    questions: [
-        {
-            question: "Which tag is used to create a hyperlink in HTML?",
-            answers: ["<link>", "<a>", "<href>", "<url>"],
-            correctAnswer: 1,
-            marks: 10
-        },
-        {
-            question: "Which CSS property is used to change the text color?",
-            answers: ["text-color", "font-color", "color", "foreground-color"],
-            correctAnswer: 2,
-            marks: 10
-        },
-        {
-            question: "Which of the following is not a JavaScript data type?",
-            answers: ["string", "boolean", "integer", "undefined"],
-            correctAnswer: 2,
-            marks: 10
-        },
-        {
-            question: "What does CSS stand for?",
-            answers: ["Creative Style Sheets", "Computer Style Sheets", "Cascading Style Sheets", "Colorful Style Sheets"],
-            correctAnswer: 2,
-            marks: 10
-        },
-        {
-            question: "Which HTML element is used to specify a header for a document or section?",
-            answers: ["<head>", "<header>", "<top>", "<heading>"],
-            correctAnswer: 1,
-            marks: 10
-        }
-    ],
-    marksForPass: 75,
-    applicableGrade: 10,
-    applicableLevel: 10,
-    instructor: "Sarah Johnson",
-    duration: "5 hours",
-    created_at: "2025-01-15",
-    students: 3240,
-    isPrivate: false
+// Progress tracking utilities
+const COURSE_PROGRESS_KEY = 'ceyacc_course_progress';
+
+const getCourseProgress = (courseId) => {
+    try {
+        const stored = localStorage.getItem(COURSE_PROGRESS_KEY);
+        const allProgress = stored ? JSON.parse(stored) : {};
+        return allProgress[courseId] || {
+            currentMediaIndex: 0,
+            completedMedia: [],
+            quizCompleted: false,
+            quizScore: 0,
+            lastAccessed: null,
+            totalTimeSpent: 0
+        };
+    } catch (error) {
+        console.error('Error reading course progress from localStorage:', error);
+        return {
+            currentMediaIndex: 0,
+            completedMedia: [],
+            quizCompleted: false,
+            quizScore: 0,
+            lastAccessed: null,
+            totalTimeSpent: 0
+        };
+    }
+};
+
+const saveCourseProgress = (courseId, progress) => {
+    try {
+        const stored = localStorage.getItem(COURSE_PROGRESS_KEY);
+        const allProgress = stored ? JSON.parse(stored) : {};
+        allProgress[courseId] = {
+            ...progress,
+            lastAccessed: new Date().toISOString()
+        };
+        localStorage.setItem(COURSE_PROGRESS_KEY, JSON.stringify(allProgress));
+    } catch (error) {
+        console.error('Error saving course progress to localStorage:', error);
+    }
 };
 
 // Certificate Component
@@ -202,7 +188,7 @@ const BackgroundAnimation = () => {
 };
 
 // Video Player Component
-const VideoPlayer = ({ src, onComplete, isActive }) => {
+const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -264,7 +250,7 @@ const VideoPlayer = ({ src, onComplete, isActive }) => {
             <video
                 ref={videoRef}
                 className="w-full aspect-video"
-                poster={sampleCourse.thumbnail[0]}
+                poster={poster || undefined}
                 onClick={togglePlay}
             >
                 <source src={src} type="video/mp4" />
@@ -393,7 +379,7 @@ const Quiz = ({ questions, passingPercentage, onComplete }) => {
                 </div>
 
                 <div className="space-y-4">
-                    {questions.map((question, index) => {
+                    {questions?.map((question, index) => {
                         const isCorrect = answers[index] === question.correctAnswer;
 
                         return (
@@ -461,7 +447,7 @@ const Quiz = ({ questions, passingPercentage, onComplete }) => {
                 <h3 className="text-lg font-medium mb-4">{question.question}</h3>
 
                 <div className="space-y-3">
-                    {question.answers.map((answer, index) => (
+                    {question.answers?.map((answer, index) => (
                         <button
                             key={index}
                             className={`w-full text-left p-3 rounded-md border transition-colors ${answers[currentQuestion] === index
@@ -526,32 +512,92 @@ const Quiz = ({ questions, passingPercentage, onComplete }) => {
 
 // Main Course Details Component
 const CourseDetails = () => {
-    // Normally you would use the ID to fetch course data
-    // const { id } = useParams();
-    const course = sampleCourse; // Using hardcoded data
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
+    // Get course from Redux store
+    const { currentCourse, loading, error } = useSelector((state) => state.courses);
+
+    // Progress state
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
     const [completedMedia, setCompletedMedia] = useState([]);
     const [showQuiz, setShowQuiz] = useState(false);
     const [quizCompleted, setQuizCompleted] = useState(false);
+    const [quizScore, setQuizScore] = useState(0);
     const [userName, setUserName] = useState("");
     const [showNameInput, setShowNameInput] = useState(false);
     const [showCertificate, setShowCertificate] = useState(false);
+    const [sessionStartTime, setSessionStartTime] = useState(null);
 
-    // Calculate progress percentage
-    const progressPercentage = Math.round((completedMedia.length / course.media.length) * 100);
-    const allMediaCompleted = completedMedia.length === course.media.length;
+    // Memoized values for performance
+    const courseId = useMemo(() => Number(id), [id]);
+    const hasMedia = useMemo(() => currentCourse?.media && currentCourse.media.length > 0, [currentCourse]);
+    const hasQuestions = useMemo(() => currentCourse?.questions && currentCourse.questions.length > 0, [currentCourse]);
+    const progressPercentage = useMemo(() => {
+        if (!currentCourse) return 0;
+        const totalLessons = hasMedia ? currentCourse.media.length : (hasQuestions ? 1 : 0);
+        return totalLessons > 0 ? Math.round((completedMedia.length / totalLessons) * 100) : 0;
+    }, [currentCourse, completedMedia, hasMedia, hasQuestions]);
+    const allMediaCompleted = useMemo(() => {
+        return hasMedia ? completedMedia.length === currentCourse.media.length : false;
+    }, [hasMedia, completedMedia, currentCourse]);
+
+    // Fetch course data on component mount
+    useEffect(() => {
+        if (id) {
+            console.log('Fetching course with ID:', id);
+            dispatch(fetchCourseById(Number(id)));
+        }
+    }, [dispatch, id]);
+
+    // Debug: Log course data when it changes
+    useEffect(() => {
+        if (currentCourse) {
+            console.log('Course data loaded:', currentCourse);
+        }
+    }, [currentCourse]);
+
+    // Load progress from localStorage when course is loaded
+    useEffect(() => {
+        if (currentCourse && id) {
+            const savedProgress = getCourseProgress(id);
+            setCurrentMediaIndex(savedProgress.currentMediaIndex || 0);
+            setCompletedMedia(savedProgress.completedMedia || []);
+            setQuizCompleted(savedProgress.quizCompleted || false);
+            setQuizScore(savedProgress.quizScore || 0);
+            setSessionStartTime(new Date());
+        }
+    }, [currentCourse, id]);
+
+    // Save progress whenever it changes
+    useEffect(() => {
+        if (currentCourse && id) {
+            const progress = {
+                currentMediaIndex,
+                completedMedia,
+                quizCompleted,
+                quizScore,
+                totalTimeSpent: getCourseProgress(id).totalTimeSpent || 0
+            };
+            saveCourseProgress(id, progress);
+        }
+    }, [currentCourse, id, currentMediaIndex, completedMedia, quizCompleted, quizScore]);
+
+    // Progress calculations are now memoized above
 
     // Handle media completion
     const handleMediaComplete = () => {
         if (!completedMedia.includes(currentMediaIndex)) {
-            setCompletedMedia([...completedMedia, currentMediaIndex]);
+            const newCompletedMedia = [...completedMedia, currentMediaIndex];
+            setCompletedMedia(newCompletedMedia);
         }
     };
 
     // Handle quiz completion
     const handleQuizComplete = (score) => {
         setQuizCompleted(true);
+        setQuizScore(score);
         setShowNameInput(true);
     };
 
@@ -577,6 +623,38 @@ const CourseDetails = () => {
         day: 'numeric'
     });
 
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-gray-600">Loading course...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error || !currentCourse) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">
+                        {error ? `Error loading course: ${error}` : 'Course not found'}
+                    </p>
+                    <p className="text-gray-600 mb-4">Course ID: {id}</p>
+                    <button
+                        onClick={() => navigate('/courses')}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        Back to Courses
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 pb-12">
             <BackgroundAnimation />
@@ -584,7 +662,10 @@ const CourseDetails = () => {
             <div className="container mx-auto px-4 relative z-10">
                 {/* Back Navigation */}
                 <div className="py-4">
-                    <button className="inline-flex items-center text-blue-600 hover:text-blue-800">
+                    <button
+                        onClick={() => navigate('/courses')}
+                        className="inline-flex items-center text-blue-600 hover:text-blue-800"
+                    >
                         <ChevronLeft className="w-5 h-5 mr-1" />
                         <span>Back to Courses</span>
                     </button>
@@ -592,28 +673,28 @@ const CourseDetails = () => {
 
                 {/* Course Header */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-4">{course.title}</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-4">{currentCourse.title}</h1>
 
                     <div className="flex flex-wrap gap-4 mb-4">
                         <div className="flex items-center text-gray-600">
                             <User className="w-4 h-4 mr-1" />
-                            <span>Instructor: {course.instructor}</span>
+                            <span>Instructor: {currentCourse.instructor || 'Not specified'}</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                             <Clock className="w-4 h-4 mr-1" />
-                            <span>{course.duration}</span>
+                            <span>{currentCourse.duration || 'Not specified'}</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                             <Calendar className="w-4 h-4 mr-1" />
-                            <span>Created: {course.created_at}</span>
+                            <span>Created: {new Date(currentCourse.created_at).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                             <Bookmark className="w-4 h-4 mr-1" />
-                            <span>Level: {course.applicableLevel}</span>
+                            <span>Level: {currentCourse.applicableLevel}</span>
                         </div>
                     </div>
 
-                    <p className="text-gray-600 mb-6">{course.description}</p>
+                    <p className="text-gray-600 mb-6">{currentCourse.description}</p>
 
                     <div className="flex items-center mt-2">
                         <div className="flex-1">
@@ -637,68 +718,107 @@ const CourseDetails = () => {
                         {!showQuiz && !showCertificate ? (
                             /* Video Player */
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                                {course.media.map((mediaUrl, index) => (
-                                    <VideoPlayer
-                                        key={index}
-                                        src={mediaUrl}
-                                        onComplete={() => handleMediaComplete()}
-                                        isActive={currentMediaIndex === index}
-                                    />
-                                ))}
+                                {currentCourse.media && currentCourse.media.length > 0 ? (
+                                    currentCourse.media?.map((mediaUrl, index) => (
+                                        <VideoPlayer
+                                            key={index}
+                                            src={mediaUrl}
+                                            onComplete={() => handleMediaComplete()}
+                                            isActive={currentMediaIndex === index}
+                                            poster={currentCourse.thumbnail && currentCourse.thumbnail[0]}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="p-8 text-center">
+                                        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <Play className="w-8 h-8 text-gray-400" />
+                                        </div>
+                                        <h3 className="text-lg font-medium text-gray-700 mb-2">No Media Available</h3>
+                                        <p className="text-gray-500">This course doesn't have any video lessons yet.</p>
+                                    </div>
+                                )}
 
                                 <div className="p-4">
                                     <h2 className="text-xl font-bold mb-2">
-                                        Lesson {currentMediaIndex + 1}: {
-                                            ["Introduction", "HTML Basics", "CSS Styling", "JavaScript Fundamentals"][currentMediaIndex]
+                                        {currentCourse.media && currentCourse.media.length > 0
+                                            ? `Lesson ${currentMediaIndex + 1}`
+                                            : 'Course Overview'
                                         }
                                     </h2>
 
-                                    <div className="flex justify-between items-center mt-4">
-                                        <button
-                                            onClick={() => currentMediaIndex > 0 && setCurrentMediaIndex(currentMediaIndex - 1)}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium ${currentMediaIndex > 0
-                                                ? 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                }`}
-                                            disabled={currentMediaIndex === 0}
-                                        >
-                                            Previous Lesson
-                                        </button>
+                                    {currentCourse.media && currentCourse.media.length > 0 ? (
+                                        <div className="flex justify-between items-center mt-4">
+                                            <button
+                                                onClick={() => currentMediaIndex > 0 && setCurrentMediaIndex(currentMediaIndex - 1)}
+                                                className={`px-4 py-2 rounded-md text-sm font-medium ${currentMediaIndex > 0
+                                                    ? 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                                disabled={currentMediaIndex === 0}
+                                            >
+                                                Previous Lesson
+                                            </button>
 
-                                        <button
-                                            onClick={() => {
-                                                if (currentMediaIndex < course.media.length - 1) {
-                                                    setCurrentMediaIndex(currentMediaIndex + 1);
-                                                } else if (allMediaCompleted) {
-                                                    setShowQuiz(true);
+                                            <button
+                                                onClick={() => {
+                                                    if (currentCourse.media && currentMediaIndex < currentCourse.media.length - 1) {
+                                                        setCurrentMediaIndex(currentMediaIndex + 1);
+                                                    } else if (allMediaCompleted) {
+                                                        setShowQuiz(true);
+                                                    }
+                                                }}
+                                                className={`px-4 py-2 rounded-md text-sm font-medium ${(currentCourse.media && currentMediaIndex < currentCourse.media.length - 1) ||
+                                                    (currentCourse.media && currentMediaIndex === currentCourse.media.length - 1 && allMediaCompleted)
+                                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                    : 'bg-blue-200 text-blue-400 cursor-not-allowed'
+                                                    }`}
+                                                disabled={
+                                                    (currentCourse.media && currentMediaIndex === currentCourse.media.length - 1 && !allMediaCompleted) ||
+                                                    (currentCourse.media && currentMediaIndex < currentCourse.media.length - 1 && !completedMedia.includes(currentMediaIndex))
                                                 }
-                                            }}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium ${(currentMediaIndex < course.media.length - 1) ||
-                                                (currentMediaIndex === course.media.length - 1 && allMediaCompleted)
-                                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                : 'bg-blue-200 text-blue-400 cursor-not-allowed'
-                                                }`}
-                                            disabled={
-                                                (currentMediaIndex === course.media.length - 1 && !allMediaCompleted) ||
-                                                (currentMediaIndex < course.media.length - 1 && !completedMedia.includes(currentMediaIndex))
-                                            }
-                                        >
-                                            {currentMediaIndex < course.media.length - 1 ? 'Next Lesson' : 'Take Quiz'}
-                                        </button>
-                                    </div>
+                                            >
+                                                {currentCourse.media && currentMediaIndex < currentCourse.media.length - 1 ? 'Next Lesson' : 'Take Quiz'}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="mt-4">
+                                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                <h3 className="text-lg font-medium text-blue-800 mb-2">Course Information</h3>
+                                                <div className="space-y-2 text-sm text-blue-700">
+                                                    <p><strong>Title:</strong> {currentCourse.title}</p>
+                                                    <p><strong>Description:</strong> {currentCourse.description}</p>
+                                                    <p><strong>Level:</strong> {currentCourse.applicableLevel}</p>
+                                                    <p><strong>Grade:</strong> {currentCourse.applicableGrade}</p>
+                                                    <p><strong>Passing Marks:</strong> {currentCourse.marksForPass}%</p>
+                                                    {currentCourse.questions && (
+                                                        <p><strong>Questions:</strong> {currentCourse.questions.length}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {currentCourse.questions && currentCourse.questions.length > 0 && (
+                                                <button
+                                                    onClick={() => setShowQuiz(true)}
+                                                    className="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+                                                >
+                                                    Start Quiz
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : showCertificate ? (
                             <Certificate
                                 studentName={userName}
-                                courseName={course.title}
+                                courseName={currentCourse.title}
                                 date={formattedDate}
                                 onDownload={handleDownloadCertificate}
                             />
                         ) : (
                             <Quiz
-                                questions={course.questions}
-                                passingPercentage={course.marksForPass}
+                                questions={currentCourse.questions || []}
+                                passingPercentage={currentCourse.marksForPass || 75}
                                 onComplete={handleQuizComplete}
                             />
                         )}
@@ -754,7 +874,7 @@ const CourseDetails = () => {
                             </div>
 
                             <div className="space-y-3">
-                                {course.media.map((_, index) => {
+                                {currentCourse.media && currentCourse.media?.map((_, index) => {
                                     const isCompleted = completedMedia.includes(index);
                                     const isCurrent = currentMediaIndex === index;
 
@@ -780,7 +900,7 @@ const CourseDetails = () => {
                                             </div>
                                             <div className="text-left">
                                                 <span className="font-medium">
-                                                    Lesson {index + 1}: {["Introduction", "HTML Basics", "CSS Styling", "JavaScript Fundamentals"][index]}
+                                                    Lesson {index + 1}
                                                 </span>
                                             </div>
                                         </button>
@@ -839,33 +959,37 @@ const CourseDetails = () => {
                         <div className="bg-white rounded-lg shadow-md p-6">
                             <h2 className="text-lg font-bold mb-4">Course Resources</h2>
                             <div className="space-y-3">
-                                {course.resources.map((resource, index) => {
-                                    const fileName = resource.split('/').pop();
-                                    const fileType = fileName.split('.').pop().toUpperCase();
+                                {currentCourse.resources && currentCourse.resources.length > 0 ? (
+                                    currentCourse.resources?.map((resource, index) => {
+                                        const fileName = resource.split('/').pop();
+                                        const fileType = fileName.split('.').pop().toUpperCase();
 
-                                    return (
-                                        <a
-                                            key={index}
-                                            href={resource}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-10 h-10 flex-shrink-0 rounded-md bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                                                <FileText className="w-5 h-5" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-gray-900 truncate">
-                                                    {["HTML Cheatsheet", "CSS Guide", "JavaScript Reference"][index]}
-                                                </p>
-                                                <p className="text-xs text-gray-500 truncate">
-                                                    {fileType} Document
-                                                </p>
-                                            </div>
-                                            <Download className="w-4 h-4 text-gray-400" />
-                                        </a>
-                                    );
-                                })}
+                                        return (
+                                            <a
+                                                key={index}
+                                                href={resource}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors"
+                                            >
+                                                <div className="w-10 h-10 flex-shrink-0 rounded-md bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                                        Resource {index + 1}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 truncate">
+                                                        {fileType} Document
+                                                    </p>
+                                                </div>
+                                                <Download className="w-4 h-4 text-gray-400" />
+                                            </a>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="text-gray-500 text-center py-4">No resources available for this course.</p>
+                                )}
                             </div>
                         </div>
 
@@ -874,164 +998,39 @@ const CourseDetails = () => {
                             <h2 className="text-lg font-bold mb-4">Course Statistics</h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-3 bg-blue-50 rounded-md text-center">
-                                    <p className="text-sm text-blue-600 mb-1">Students</p>
-                                    <p className="text-xl font-bold text-blue-800">{course.students.toLocaleString()}</p>
+                                    <p className="text-sm text-blue-600 mb-1">Your Progress</p>
+                                    <p className="text-xl font-bold text-blue-800">{progressPercentage}%</p>
                                 </div>
                                 <div className="p-3 bg-green-50 rounded-md text-center">
-                                    <p className="text-sm text-green-600 mb-1">Completion Rate</p>
-                                    <p className="text-xl font-bold text-green-800">78%</p>
+                                    <p className="text-sm text-green-600 mb-1">Lessons Completed</p>
+                                    <p className="text-xl font-bold text-green-800">{completedMedia.length}/{currentCourse.media?.length || 0}</p>
                                 </div>
                                 <div className="p-3 bg-yellow-50 rounded-md text-center">
-                                    <p className="text-sm text-yellow-600 mb-1">Avg. Rating</p>
-                                    <p className="text-xl font-bold text-yellow-800">4.8/5</p>
+                                    <p className="text-sm text-yellow-600 mb-1">Quiz Score</p>
+                                    <p className="text-xl font-bold text-yellow-800">{quizCompleted ? `${quizScore}%` : 'Not taken'}</p>
                                 </div>
                                 <div className="p-3 bg-indigo-50 rounded-md text-center">
-                                    <p className="text-sm text-indigo-600 mb-1">Reviews</p>
-                                    <p className="text-xl font-bold text-indigo-800">342</p>
+                                    <p className="text-sm text-indigo-600 mb-1">Last Accessed</p>
+                                    <p className="text-xs font-bold text-indigo-800">
+                                        {getCourseProgress(id).lastAccessed
+                                            ? new Date(getCourseProgress(id).lastAccessed).toLocaleDateString()
+                                            : 'First time'
+                                        }
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Instructor Card */}
-                        <div className="bg-white rounded-lg shadow-md p-6">
-                            <h2 className="text-lg font-bold mb-4">About the Instructor</h2>
-                            <div className="flex items-center mb-4">
-                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                                    <User className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-medium">{course.instructor}</h3>
-                                    <p className="text-sm text-gray-500">Web Development Specialist</p>
-                                </div>
+                        {/* Progress Resume Notice */}
+                        {getCourseProgress(id).lastAccessed && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h3 className="text-sm font-medium text-blue-800 mb-2">Welcome Back!</h3>
+                                <p className="text-sm text-blue-700">
+                                    You last accessed this course on {new Date(getCourseProgress(id).lastAccessed).toLocaleDateString()}.
+                                    Your progress has been automatically restored.
+                                </p>
                             </div>
-                            <p className="text-sm text-gray-600 mb-4">
-                                Sarah is a seasoned web developer with over 10 years of experience in building responsive,
-                                user-friendly websites. She specializes in modern web technologies and has helped
-                                thousands of students master the fundamentals of web development.
-                            </p>
-                            <button className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm transition-colors">
-                                View Profile
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Reviews Section */}
-                <div className="mt-12">
-                    <h2 className="text-2xl font-bold mb-6">Student Reviews</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[
-                            {
-                                name: "Michael T.",
-                                rating: 5,
-                                comment: "This course was exactly what I needed to start my web development journey. The instructor explains concepts clearly and the hands-on approach really helps solidify the learning.",
-                                date: "April 2, 2025"
-                            },
-                            {
-                                name: "Sophia L.",
-                                rating: 4,
-                                comment: "Great introduction to web development. I especially loved the JavaScript section. Could use more exercises, but overall very satisfied with what I learned.",
-                                date: "March 15, 2025"
-                            },
-                            {
-                                name: "David W.",
-                                rating: 5,
-                                comment: "Fantastic course! I went from knowing nothing about coding to building my own website. The certificate was a nice touch too - already added it to my LinkedIn profile!",
-                                date: "February 28, 2025"
-                            }
-                        ].map((review, index) => (
-                            <div key={index} className="bg-white rounded-lg shadow-md p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center">
-                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                                            {review.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-medium">{review.name}</h3>
-                                            <p className="text-sm text-gray-500">{review.date}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex">
-                                        {[...Array(5)].map((_, i) => (
-                                            <svg
-                                                key={i}
-                                                className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                                                fill="currentColor"
-                                                viewBox="0 0 20 20"
-                                            >
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                        ))}
-                                    </div>
-                                </div>
-                                <p className="text-gray-600">{review.comment}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="mt-8 text-center">
-                        <button className="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors">
-                            View All Reviews
-                        </button>
-                    </div>
-                </div>
-
-                {/* Related Courses */}
-                <div className="mt-12">
-                    <h2 className="text-2xl font-bold mb-6">Related Courses</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[
-                            {
-                                title: "Advanced JavaScript",
-                                instructor: "Sarah Johnson",
-                                students: 2140,
-                                rating: 4.7,
-                                image: "https://bairesdev.mo.cloudinary.net/blog/2023/08/What-Is-JavaScript-Used-For.jpg?tx=w_1920,q_auto"
-                            },
-                            {
-                                title: "Responsive Web Design",
-                                instructor: "Michael Chen",
-                                students: 1850,
-                                rating: 4.9,
-                                image: "https://bairesdev.mo.cloudinary.net/blog/2023/08/What-Is-JavaScript-Used-For.jpg?tx=w_1920,q_auto"
-                            },
-                            {
-                                title: "Full Stack Development",
-                                instructor: "Jessica Williams",
-                                students: 3120,
-                                rating: 4.8,
-                                image: "https://bairesdev.mo.cloudinary.net/blog/2023/08/What-Is-JavaScript-Used-For.jpg?tx=w_1920,q_auto"
-                            }
-                        ].map((relatedCourse, index) => (
-                            <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
-                                <div className="h-40 bg-cover bg-center" style={{ backgroundImage: `url(${relatedCourse.image})` }}>
-                                    <div className="w-full h-full flex items-end bg-gradient-to-t from-black/70 to-transparent p-4">
-                                        <h3 className="text-white font-bold text-lg">{relatedCourse.title}</h3>
-                                    </div>
-                                </div>
-                                <div className="p-4">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <div className="text-sm text-gray-600">
-                                            <User className="w-3 h-3 inline mr-1" />
-                                            {relatedCourse.instructor}
-                                        </div>
-                                        <div className="flex items-center text-sm">
-                                            <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                            {relatedCourse.rating}
-                                        </div>
-                                    </div>
-                                    <div className="text-xs text-gray-500 mb-4">
-                                        <Bookmark className="w-3 h-3 inline mr-1" />
-                                        {relatedCourse.students.toLocaleString()} students enrolled
-                                    </div>
-                                    <button className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-sm">
-                                        View Course
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                        )}
                     </div>
                 </div>
 
@@ -1042,14 +1041,14 @@ const CourseDetails = () => {
                         Join our community of over 10,000 learners and explore our complete web development curriculum.
                         From beginner to advanced, we have courses for every skill level.
                     </p>
-                    <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    {/* <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <button className="px-8 py-3 bg-white text-blue-600 hover:bg-blue-50 rounded-md font-medium transition-colors">
                             Browse All Courses
                         </button>
                         <button className="px-8 py-3 bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-md font-medium transition-colors">
                             Join Membership
                         </button>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Footer */}

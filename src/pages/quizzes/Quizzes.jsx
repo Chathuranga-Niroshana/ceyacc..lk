@@ -5,32 +5,57 @@ import MainButton from '../../components/button/MainButton';
 import InputField from '../../components/input/InputField';
 import { BookOpen, CheckCircle, XCircle, Award, Search } from 'lucide-react';
 import * as THREE from 'three';
-import { quizzes } from '../../../database/sampleQuizzes';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchQuizzes, createQuizInteraction, fetchQuizInteractions } from '../../features/quizzes/quizzesSlice';
 
 // Quiz card component with animation
 const QuizCard = ({ quiz, index }) => {
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [userAnswer, setUserAnswer] = useState(null);
+    const dispatch = useDispatch();
 
     const handleAnswerSelect = (answerIndex) => {
         setSelectedAnswer(answerIndex);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (selectedAnswer !== null) {
-            const correct = selectedAnswer === quiz.correctAnswer;
-            setIsCorrect(correct);
-            setShowResult(true);
+            setIsSubmitting(true);
+            try {
+                // Convert 0-based index to 1-based index for API
+                const answerId = selectedAnswer + 1;
 
-            // Log the interactingScore to console
-            console.log(`Quiz "${quiz.title}" interactingScore: ${quiz.interactingScore}`);
+                // Submit answer to API
+                const result = await dispatch(createQuizInteraction({
+                    quizId: quiz.id,
+                    answerId: answerId
+                })).unwrap();
+
+                // Store user's answer locally
+                setUserAnswer(result);
+
+                // Check if answer is correct
+                const correct = answerId === quiz.correct_answer;
+                setIsCorrect(correct);
+                setShowResult(true);
+
+                console.log(`Quiz "${quiz.title}" answered with answer ID: ${answerId}`);
+            } catch (error) {
+                console.error("Error submitting answer:", error);
+                // You can show error toast here
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
     const handleReset = () => {
         setSelectedAnswer(null);
         setShowResult(false);
+        setUserAnswer(null);
     };
 
     // Staggered animation for cards
@@ -58,11 +83,17 @@ const QuizCard = ({ quiz, index }) => {
 
                 {/* Media section */}
                 <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
-                    <img
-                        src={quiz.media[0]}
-                        alt={quiz.title}
-                        className="w-full h-full object-cover"
-                    />
+                    {quiz.media_url_one ? (
+                        <img
+                            src={quiz.media_url_one}
+                            alt={quiz.title}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                            <BookOpen size={48} className="text-red-400" />
+                        </div>
+                    )}
                     <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
                         <h3 className="text-xl font-bold px-4 text-center">
                             {quiz.title}
@@ -75,7 +106,7 @@ const QuizCard = ({ quiz, index }) => {
                     <div className="flex items-center mb-4">
                         <BookOpen size={20} className="text-red-700 mr-2" />
                         <p className="text-gray-600">
-                            {quiz.description}
+                            {quiz.description || "No description available"}
                         </p>
                     </div>
 
@@ -85,7 +116,13 @@ const QuizCard = ({ quiz, index }) => {
 
                     {/* Answer options */}
                     <div className="space-y-3 mb-6">
-                        {quiz.answers.map((answer, idx) => (
+                        {[
+                            quiz.answer_one,
+                            quiz.answer_two,
+                            quiz.answer_three,
+                            quiz.answer_four,
+                            quiz.answer_five
+                        ].filter(answer => answer && answer.trim() !== "").map((answer, idx) => (
                             <motion.div
                                 key={idx + 1}
                                 whileHover={{ scale: 1.02 }}
@@ -94,7 +131,7 @@ const QuizCard = ({ quiz, index }) => {
                                 <div
                                     onClick={() => !showResult && handleAnswerSelect(idx)}
                                     className={`p-3 cursor-pointer text-neutral-800 border-2 rounded-md shadow-sm transition-all ${showResult
-                                        ? idx === quiz.correctAnswer
+                                        ? idx + 1 === quiz.correct_answer
                                             ? 'border-green-500 bg-green-50'
                                             : selectedAnswer === idx
                                                 ? 'border-red-500 bg-red-50'
@@ -106,13 +143,31 @@ const QuizCard = ({ quiz, index }) => {
                                 >
                                     <div className="flex items-center justify-between">
                                         <p>{answer}</p>
-                                        {showResult && idx === quiz.correctAnswer && <CheckCircle size={20} className="text-green-500" />}
-                                        {showResult && selectedAnswer === idx && idx !== quiz.correctAnswer && <XCircle size={20} className="text-red-500" />}
+                                        {showResult && idx + 1 === quiz.correct_answer && <CheckCircle size={20} className="text-green-500" />}
+                                        {showResult && selectedAnswer === idx && idx + 1 !== quiz.correct_answer && <XCircle size={20} className="text-red-500" />}
                                     </div>
                                 </div>
                             </motion.div>
                         ))}
                     </div>
+
+                    {/* User Answer Display */}
+                    {userAnswer && (
+                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="flex items-center mb-2">
+                                <BookOpen size={16} className="text-blue-600 mr-2" />
+                                <p className="text-sm font-medium text-blue-800">Your Answer</p>
+                            </div>
+                            <p className="text-sm text-blue-700">
+                                Submitted on: {new Date(userAnswer.created_at).toLocaleString()}
+                            </p>
+                            {userAnswer.user && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                    By: {userAnswer.user.name}
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     {/* Action buttons */}
                     <div className="flex justify-between">
@@ -123,7 +178,7 @@ const QuizCard = ({ quiz, index }) => {
                                         <div className="flex items-center text-green-600">
                                             <Award size={24} className="mr-2" />
                                             <p>
-                                                Correct! +{quiz.interactingScore} points
+                                                Correct! Answer submitted successfully
                                             </p>
                                         </div>
                                     ) : (
@@ -140,9 +195,9 @@ const QuizCard = ({ quiz, index }) => {
                             </div>
                         ) : (
                             <MainButton
-                                label="Submit Answer"
+                                label={isSubmitting ? "Submitting..." : "Submit Answer"}
                                 onClick={handleSubmit}
-                                disabled={selectedAnswer === null}
+                                disabled={selectedAnswer === null || isSubmitting}
                                 fullWidth
                             />
                         )}
@@ -241,16 +296,21 @@ const ThreeJSBackground = () => {
 // Main Quiz component
 const Quizzes = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredQuizzes, setFilteredQuizzes] = useState(quizzes);
+    const dispatch = useDispatch();
 
-    // Effect for search filtering
+    // Get quizzes from Redux store
+    const { allQuizzes, loading, error } = useSelector((state) => state.quizzes);
+
+    // Fetch quizzes on component mount
     useEffect(() => {
-        const results = quizzes.filter(quiz =>
-            quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quiz.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredQuizzes(results);
-    }, [searchTerm]);
+        dispatch(fetchQuizzes());
+    }, [dispatch]);
+
+    // Filter quizzes based on search term
+    const filteredQuizzes = allQuizzes.filter(quiz =>
+        quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (quiz.description && quiz.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
 
     return (
         <div className="min-h-screen bg-gray-50 pb-16">
@@ -299,20 +359,41 @@ const Quizzes = () => {
                     />
                 </motion.div>
 
+                {/* Loading State */}
+                {loading && (
+                    <div className="text-center py-16">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
+                        <p className="mt-2 text-gray-600">Loading quizzes...</p>
+                    </div>
+                )}
+
+                {/* Error State */}
+                {error && !loading && (
+                    <div className="text-center py-16">
+                        <p className="text-red-600 mb-4">Error loading quizzes: {error}</p>
+                        <MainButton
+                            label="Try Again"
+                            onClick={() => dispatch(fetchQuizzes())}
+                        />
+                    </div>
+                )}
+
                 {/* Quiz Grid */}
-                <div className="grid grid-cols-1  gap-6">
-                    {filteredQuizzes.length > 0 ? (
-                        filteredQuizzes.map((quiz, index) => (
-                            <QuizCard quiz={quiz} index={index} key={index} />
-                        ))
-                    ) : (
-                        <div className="col-span-2 text-center py-16">
-                            <p className="text-xl text-gray-500">
-                                No quizzes found matching your search.
-                            </p>
-                        </div>
-                    )}
-                </div>
+                {!loading && !error && (
+                    <div className="grid grid-cols-1 gap-6">
+                        {filteredQuizzes.length > 0 ? (
+                            filteredQuizzes.map((quiz, index) => (
+                                <QuizCard quiz={quiz} index={index} key={quiz.id} />
+                            ))
+                        ) : (
+                            <div className="col-span-2 text-center py-16">
+                                <p className="text-xl text-gray-500">
+                                    {searchTerm ? 'No quizzes found matching your search.' : 'No quizzes available.'}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

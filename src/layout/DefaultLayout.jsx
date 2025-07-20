@@ -1,5 +1,5 @@
-import React, { Suspense } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import React, { Suspense, useEffect } from "react";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import routes from "../routes";
 import Header from "../components/layout/Header";
@@ -36,6 +36,14 @@ const DefaultLayout = () => {
     const isAuthPage = authRoutes.includes(location.pathname);
     const isCourseDetailsPage = /^\/courses\/\d+$/.test(location.pathname);
     const shouldShowRightSidebar = !isAuthPage && !isCourseDetailsPage;
+    const navigate = useNavigate();
+    const token = localStorage.getItem('token');
+    useEffect(() => {
+        if (!token) {
+            navigate('/login');
+        }
+    }, [token]);
+
     return (
         <div className="min-h-screen flex bg-[#F8F8F8] flex-col">
             {!isAuthPage && <Header />}

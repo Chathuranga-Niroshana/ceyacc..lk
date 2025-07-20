@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import InputField from '../../components/input/InputField';
 import MainButton from '../../components/button/MainButton';
 import MediaInputField from '../../components/input/MediaInputField';
+import { createQuiz, clearError } from '../../features/quizzes/quizzesSlice';
 
 // Icons
 import {
@@ -11,9 +12,9 @@ import {
     Send,
     Check
 } from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CreateQuiz = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [data, setData] = useState({
         title: "",
         question: "",
@@ -23,6 +24,10 @@ const CreateQuiz = () => {
         media: []
     });
     const [errors, setErrors] = useState({});
+    const dispatch = useDispatch();
+
+    // Get state from Redux
+    const { loading, error } = useSelector((state) => state.quizzes);
 
     // Handle text input changes
     const handleChange = (e) => {
@@ -87,6 +92,21 @@ const CreateQuiz = () => {
         }));
     };
 
+    // Clear error when component mounts or when error changes
+    useEffect(() => {
+        if (error) {
+            // You can show error toast here
+            console.error("Quiz creation error:", error);
+        }
+    }, [error]);
+
+    // Clear error when user starts typing
+    useEffect(() => {
+        if (error) {
+            dispatch(clearError());
+        }
+    }, [data, dispatch]);
+
     // Form validation
     const validateForm = () => {
         const newErrors = {};
@@ -131,22 +151,42 @@ const CreateQuiz = () => {
             return;
         }
 
-        setIsSubmitting(true);
+        // Prepare data for submission - filter out empty answers
+        const filteredAnswers = data.answers.filter(answer => answer.trim() !== "");
+
+        // Calculate the correct answer index based on filtered answers
+        let correctAnswerIndex = 0;
+        let currentIndex = 0;
+        for (let i = 0; i < data.answers.length; i++) {
+            if (data.answers[i].trim() !== "") {
+                if (i === data.correctAnswer) {
+                    correctAnswerIndex = currentIndex + 1; // API expects 1-based index
+                    break;
+                }
+                currentIndex++;
+            }
+        }
+
+        // Prepare submission data according to API schema
+        const submissionData = {
+            title: data.title,
+            question: data.question,
+            description: data.description,
+            answer_one: filteredAnswers[0] || "",
+            answer_two: filteredAnswers[1] || "",
+            answer_three: filteredAnswers[2] || null,
+            answer_four: filteredAnswers[3] || null,
+            answer_five: filteredAnswers[4] || null,
+            correct_answer: correctAnswerIndex,
+            media_url_one: data.media[0] || null,
+            media_url_two: data.media[1] || null,
+            media_url_three: data.media[2] || null,
+            visibility: true
+        };
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Prepare data for submission - filter out empty answers
-            const submissionData = {
-                ...data,
-                answers: data.answers.filter(answer => answer.trim() !== ""),
-                // Adjust correctAnswer index if empty answers before it were removed
-                correctAnswer: data.answers.filter((answer, idx) => answer.trim() !== "" && idx < data.correctAnswer).length
-            };
-
-            // Log the data that would be sent to backend
-            console.log("Quiz data:", submissionData);
+            // Dispatch the createQuiz action
+            const result = await dispatch(createQuiz(submissionData)).unwrap();
 
             // Reset form after successful submission
             setData({
@@ -163,9 +203,7 @@ const CreateQuiz = () => {
 
         } catch (error) {
             console.error("Error creating quiz:", error);
-            alert("Failed to create quiz. Please try again.");
-        } finally {
-            setIsSubmitting(false);
+            // Error is already handled by Redux state
         }
     };
 
@@ -286,13 +324,20 @@ const CreateQuiz = () => {
                         <p className="text-xs text-gray-500 mt-2">Provide at least two answer options. Empty answers will be ignored.</p>
                     </div>
 
+                    {/* Error Display */}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                            <p className="text-sm text-red-600">{error}</p>
+                        </div>
+                    )}
+
                     {/* Submit Button */}
                     <MainButton
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={loading}
                         className="mt-4"
                         icon={<Send />}
-                        label={isSubmitting ? "Creating Quiz..." : "Create Quiz"}
+                        label={loading ? "Creating Quiz..." : "Create Quiz"}
                     />
                 </div>
             </form>

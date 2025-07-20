@@ -15,9 +15,14 @@ import SelectField from '../../components/input/SelectField';
 import RadioButton from '../../components/input/RadioButton';
 import { UploadFile, Image, School, MenuBook, NoteAdd } from '@mui/icons-material';
 import { examTypes, subjectStreams } from '../../data/examTypes';
+import { useDispatch, useSelector } from 'react-redux';
+import { createExamPaper, clearError } from '../../features/examPapers/examPapersSlice';
 
 const CreateExamPaper = () => {
+    const dispatch = useDispatch();
+    const { loading, error } = useSelector((state) => state.examPapers);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
     const [data, setData] = useState({
         subject: null,
         grade: null,
@@ -26,7 +31,6 @@ const CreateExamPaper = () => {
         year: "",
         description: "",
         media: [],
-        question: "",
     });
     const [errors, setErrors] = useState({});
     const [examType, setExamType] = useState('ol');
@@ -136,6 +140,13 @@ const CreateExamPaper = () => {
         }));
     };
 
+    // Clear error when component mounts or when user starts typing
+    useEffect(() => {
+        if (error) {
+            dispatch(clearError());
+        }
+    }, [dispatch, error]);
+
     // Form validation
     const validateForm = () => {
         const newErrors = {};
@@ -175,35 +186,45 @@ const CreateExamPaper = () => {
         setIsSubmitting(true);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
             // Prepare data for submission
             const submissionData = {
-                ...data,
-                examType,
-                ...(examType === 'al' && { subjectStream }),
-                // Extract values from objects for submission
                 subject: data.subject?.value || "",
-                grade: data.grade?.value || "",
+                grade: parseInt(data.grade?.value) || 0,
+                school: data.school.trim(),
                 semester: data.semester?.value || "",
+                year: data.year,
+                examType: examType,
+                description: data.description.trim() || null,
+                media: data.media.length > 0 ? data.media : null,
             };
 
-            console.log("Submitting data:", submissionData);
+            console.log("Submitting exam paper data:", submissionData);
 
-            // Reset form after successful submission
-            setData({
-                subject: null,
-                grade: null,
-                school: "",
-                semester: null,
-                year: "",
-                description: "",
-                media: [],
-            });
+            // Dispatch the create exam paper action
+            const result = await dispatch(createExamPaper(submissionData));
 
-            // Show success notification
-            alert("Exam Paper created successfully!");
+            if (createExamPaper.fulfilled.match(result)) {
+                // Reset form after successful submission
+                setData({
+                    subject: null,
+                    grade: null,
+                    school: "",
+                    semester: null,
+                    year: "",
+                    description: "",
+                    media: [],
+                });
+                setExamType('ol');
+                setSubjectStream('science');
+                setErrors({});
+
+                // Show success message
+                setShowSuccess(true);
+                setTimeout(() => setShowSuccess(false), 5000); // Hide after 5 seconds
+            } else {
+                // Error is handled by Redux state
+                console.error("Failed to create exam paper");
+            }
 
         } catch (error) {
             console.error("Error creating paper:", error);
@@ -227,8 +248,29 @@ const CreateExamPaper = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg px-8 pb-8 "
+            className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg px-8 pb-8"
         >
+            {/* Error Display */}
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg"
+                >
+                    <p className="text-red-600 text-sm">{error}</p>
+                </motion.div>
+            )}
+
+            {/* Success Display */}
+            {showSuccess && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg"
+                >
+                    <p className="text-green-600 text-sm">Exam paper created successfully! 🎉</p>
+                </motion.div>
+            )}
             <form onSubmit={handleSubmit}>
                 <motion.div
                     variants={containerVariants}
@@ -401,10 +443,10 @@ const CreateExamPaper = () => {
                     >
                         <MainButton
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || loading}
                             className="mt-4 w-full"
                             icon={<UploadFile />}
-                            label={isSubmitting ? "Uploading Paper..." : "Upload Paper"}
+                            label={isSubmitting || loading ? "Creating Exam Paper..." : "Create Exam Paper"}
                         />
                     </motion.div>
                 </motion.div>

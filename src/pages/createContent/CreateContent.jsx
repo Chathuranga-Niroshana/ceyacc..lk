@@ -75,9 +75,9 @@ const CreateContent = () => {
                 return <CreateEvent />;
             case 3:
                 return <CreateQuiz />;
-            case 4:
-                return <CreateJob />;
             case 5:
+                return <CreateJob />;
+            case 4:
                 return <CreateExamPaper />;
             case 6:
                 return <CreateLiveContent />;

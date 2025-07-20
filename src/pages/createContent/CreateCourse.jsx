@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import InputField from '../../components/input/InputField';
 import MainButton from '../../components/button/MainButton';
 import MediaInputField from '../../components/input/MediaInputField';
+import { createCourse, clearError } from '../../features/courses/coursesSlice';
 
 // Icons
 import {
@@ -17,9 +18,9 @@ import {
     Check,
     QuestionMark
 } from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CreateCourse = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isPrivate, setIsPrivate] = useState(false);
     const [data, setData] = useState({
         thumbnail: [],
@@ -33,6 +34,10 @@ const CreateCourse = () => {
         applicableLevel: 10,
     });
     const [errors, setErrors] = useState({});
+    const dispatch = useDispatch();
+
+    // Get state from Redux
+    const { loading, error } = useSelector((state) => state.courses);
 
     // Question template for new questions
     const emptyQuestion = {
@@ -76,6 +81,21 @@ const CreateCourse = () => {
             [type]: [...prev[type], ...mediaUrls]
         }));
     };
+
+    // Clear error when component mounts or when error changes
+    useEffect(() => {
+        if (error) {
+            // You can show error toast here
+            console.error("Course creation error:", error);
+        }
+    }, [error]);
+
+    // Clear error when user starts typing
+    useEffect(() => {
+        if (error) {
+            dispatch(clearError());
+        }
+    }, [data, dispatch]);
 
     // Handle resource files specifically
     const handleResourceChange = (files) => {
@@ -170,14 +190,27 @@ const CreateCourse = () => {
             return;
         }
 
-        setIsSubmitting(true);
+        // Prepare submission data according to API schema
+        const submissionData = {
+            title: data.title,
+            description: data.description,
+            thumbnail: data.thumbnail.length > 0 ? data.thumbnail : null,
+            media: data.media.length > 0 ? data.media : null,
+            resources: data.resources.length > 0 ? data.resources : null,
+            marksForPass: data.marksForPass,
+            applicableGrade: data.applicableGrade,
+            applicableLevel: data.applicableLevel,
+            questions: data.questions.map(q => ({
+                question: q.question,
+                answers: q.answers,
+                correctAnswer: q.correctAnswer,
+                marks: q.marks
+            }))
+        };
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Log the data that would be sent to backend
-            console.log("Course data:", data);
+            // Dispatch the createCourse action
+            await dispatch(createCourse(submissionData)).unwrap();
 
             // Reset form after successful submission
             setData({
@@ -199,9 +232,7 @@ const CreateCourse = () => {
 
         } catch (error) {
             console.error("Error creating course:", error);
-            alert("Failed to create course. Please try again.");
-        } finally {
-            setIsSubmitting(false);
+            // Error is already handled by Redux state
         }
     };
 
@@ -508,13 +539,20 @@ const CreateCourse = () => {
                         ))}
                     </div>
 
+                    {/* Error Display */}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                            <p className="text-sm text-red-600">{error}</p>
+                        </div>
+                    )}
+
                     {/* Submit Button */}
                     <MainButton
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={loading}
                         className="mt-6"
                         icon={<Send />}
-                        label={isSubmitting ? "Creating Course..." : "Create Course"}
+                        label={loading ? "Creating Course..." : "Create Course"}
                     />
                 </div>
             </form>
