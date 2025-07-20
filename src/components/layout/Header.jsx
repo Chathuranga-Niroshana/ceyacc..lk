@@ -288,6 +288,14 @@ const Header = () => {
                         </motion.nav>
                     )}
                 </div>
+                <div className="flex md:hidden gap-2 mt-2 justify-center">
+                    <Link to="/create-content" className="px-3 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium">Create Content</Link>
+                    <Link to="/courses" className="px-3 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium">Courses</Link>
+                    <Link to="/quizzes" className="px-3 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium">Quizzes</Link>
+                    <Link to="/papers" className="px-3 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium">Exam Papers</Link>
+                    <Link to="/events" className="px-3 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium">Events</Link>
+                    <Link to="/users" className="px-3 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium">Users</Link>
+                </div>
             </motion.header>
 
             {/* Custom CSS for Ant Design Search component */}

@@ -7,6 +7,7 @@ import {
     LogOutIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SafeImage from '../../components/widgets/SafeImage';
 
 const UserProfile = () => {
     const dispatch = useDispatch();
@@ -122,10 +123,12 @@ const UserProfile = () => {
                 <div className="relative">
                     {/* Cover Image */}
                     <div className="h-48 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-2xl relative overflow-hidden shadow-lg">
-                        <img
+                        <SafeImage
                             src={userProfile.cover_image || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3"}
                             alt="Cover"
                             className="absolute w-full h-full object-cover opacity-80"
+                            width={"100%"}
+                            height={192}
                         />
                         <div className="absolute inset-0 bg-white/10"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent"></div>
@@ -139,7 +142,13 @@ const UserProfile = () => {
                             )}
                             <div className="bg-white/30 backdrop-blur-sm rounded-full p-2 border border-white/20">
                                 {userProfile.level?.image ? (
-                                    <img src={userProfile.level.image} alt="Level" className="w-5 h-5" />
+                                    <SafeImage
+                                        src={userProfile.level.image}
+                                        alt="Level"
+                                        className="w-5 h-5"
+                                        width={20}
+                                        height={20}
+                                    />
                                 ) : (
                                     <Star className="w-5 h-5 text-yellow-600" />
                                 )}
@@ -152,10 +161,12 @@ const UserProfile = () => {
                         <div className="relative">
                             <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                                 {userProfile.image ? (
-                                    <img
+                                    <SafeImage
                                         src={userProfile.image}
                                         alt={userProfile.name}
                                         className="w-full h-full object-cover"
+                                        width={96}
+                                        height={96}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-gray-600">
@@ -402,7 +413,13 @@ const UserProfile = () => {
                                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-200">
                                     <div className="text-center">
                                         {userProfile.level?.image ? (
-                                            <img src={userProfile.level.image} alt="Level" className="w-12 h-12 mx-auto mb-2" />
+                                            <SafeImage
+                                                src={userProfile.level.image}
+                                                alt="Level"
+                                                className="w-12 h-12 mx-auto mb-2"
+                                                width={48}
+                                                height={48}
+                                            />
                                         ) : (
                                             <Star className="w-12 h-12 text-yellow-600 mx-auto mb-2" />
                                         )}

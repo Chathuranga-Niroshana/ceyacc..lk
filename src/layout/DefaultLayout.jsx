@@ -48,16 +48,19 @@ const DefaultLayout = () => {
         <div className="min-h-screen flex bg-[#F8F8F8] flex-col">
             {!isAuthPage && <Header />}
             <div className={`flex mt-20 flex-1`}>
-                {!isAuthPage &&
-                    <div className="w-1/4 z-[9]">
+                {/* Sidebar: only show on md and up */}
+                {!isAuthPage && (
+                    <div className="w-1/4 hidden md:block z-[9]">
                         <Sidebar />
                     </div>
-                }
-                <div className="flex-grow w-2/4 p-4">
+                )}
+                {/* App Content: full width on md and below, shrink on lg+ */}
+                <div className={`flex-grow p-4 ${!isAuthPage ? 'w-full md:w-2/4 transition-all duration-300' : ''}`}>
                     <AppContent />
                 </div>
+                {/* RightSidebar: only show on lg and up */}
                 {shouldShowRightSidebar && (
-                    <div className="w-1/4">
+                    <div className="w-1/4 hidden lg:block">
                         <RightSidebar />
                     </div>
                 )}

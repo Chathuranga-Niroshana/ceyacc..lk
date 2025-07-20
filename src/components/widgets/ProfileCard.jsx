@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, User } from 'lucide-react';
 import { getUserProfile } from '../../features/auth/authSlice';
+import SafeImage from './SafeImage';
 
 const ProfileCard = () => {
     const dispatch = useDispatch();
@@ -47,10 +48,12 @@ const ProfileCard = () => {
         <div className="w-full max-w-xs md:max-w-sm mx-auto rounded-2xl overflow-hidden shadow-md bg-white font-sans my-4">
             {/* Cover Image */}
             <div className="h-32 w-full relative overflow-hidden bg-gradient-to-r from-blue-200 to-indigo-200">
-                <img
+                <SafeImage
                     src={user?.cover_image || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3"}
                     alt="Cover"
                     className="absolute w-full h-full object-cover"
+                    width={"100%"}
+                    height={128}
                 />
             </div>
             <div className="p-0 bg-white relative text-center">
@@ -63,10 +66,12 @@ const ProfileCard = () => {
                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                         }}>
                         {user?.image ? (
-                            <img
+                            <SafeImage
                                 src={user?.image}
                                 alt={user?.name}
                                 className="w-full h-full object-cover"
+                                width={80}
+                                height={80}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center"
@@ -102,7 +107,7 @@ const ProfileCard = () => {
                 {/* Profile Button */}
                 <div className="py-3">
                     <button
-                        onClick={() => navigate('/user-profile')}
+                        onClick={() => navigate('/profile')}
                         className="text-blue-500 font-bold cursor-pointer bg-transparent border-0 text-base hover:underline"
                     >
                         My Profile

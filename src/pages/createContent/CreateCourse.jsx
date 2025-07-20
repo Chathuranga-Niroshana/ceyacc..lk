@@ -6,6 +6,7 @@ import MainButton from '../../components/button/MainButton';
 import MediaInputField from '../../components/input/MediaInputField';
 import { createCourse, clearError } from '../../features/courses/coursesSlice';
 import cloudinaryUpload from '../../utils/cloudinaryInstance';
+import SafeImage from '../../components/widgets/SafeImage';
 
 // Icons
 import {
@@ -283,8 +284,13 @@ const CreateCourse = () => {
                                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md max-h-32 overflow-y-auto">
                                     {data.thumbnail.map((url, index) => (
                                         <div key={index} className="mb-1 flex items-center">
-                                            <Image fontSize="small" className="mr-1 text-blue-500" />
-                                            <span className="truncate">{url}</span>
+                                            <SafeImage
+                                                src={url}
+                                                alt={`Thumbnail ${index + 1}`}
+                                                className="w-20 h-20 object-cover rounded"
+                                                width={80}
+                                                height={80}
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -365,8 +371,13 @@ const CreateCourse = () => {
                                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md max-h-32 overflow-y-auto">
                                     {data.media.map((url, index) => (
                                         <div key={index} className="mb-1 flex items-center">
-                                            <Image fontSize="small" className="mr-1 text-blue-500" />
-                                            <span className="truncate">{url}</span>
+                                            <SafeImage
+                                                src={url}
+                                                alt={`Media ${index + 1}`}
+                                                className="w-20 h-20 object-cover rounded"
+                                                width={80}
+                                                height={80}
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -400,8 +411,13 @@ const CreateCourse = () => {
                                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md max-h-32 overflow-y-auto">
                                     {data.resources.map((url, index) => (
                                         <div key={index} className="mb-1 flex items-center">
-                                            <Image fontSize="small" className="mr-1 text-blue-500" />
-                                            <span className="truncate">{url}</span>
+                                            <SafeImage
+                                                src={url}
+                                                alt={`Resource ${index + 1}`}
+                                                className="w-20 h-20 object-cover rounded"
+                                                width={80}
+                                                height={80}
+                                            />
                                         </div>
                                     ))}
                                 </div>

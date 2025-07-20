@@ -1,6 +1,33 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 // import { setInterest } from '../store/eventSlice';
+import Skeleton from '@mui/material/Skeleton';
+
+// SafeImage component for fallback
+const SafeImage = ({ src, alt, className, ...props }) => {
+    const [error, setError] = useState(false);
+    if (error) {
+        return (
+            <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={256}
+                className={className}
+                animation="wave"
+                sx={{ borderRadius: 2 }}
+            />
+        );
+    }
+    return (
+        <img
+            src={src}
+            alt={alt}
+            className={className}
+            onError={() => setError(true)}
+            {...props}
+        />
+    );
+};
 
 const EventCard = ({ event }) => {
     const dispatch = useDispatch();
@@ -44,13 +71,10 @@ const EventCard = ({ event }) => {
             {/* Event Media Gallery */}
             {mediaUrls.length > 0 && (
                 <div className="relative h-64 bg-gray-200">
-                    <img
+                    <SafeImage
                         src={mediaUrls[currentImageIndex]}
                         alt={`${event.title} - Image ${currentImageIndex + 1}`}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/400x300?text=Event+Image';
-                        }}
                     />
                     {mediaUrls.length > 1 && (
                         <>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { getColorForScore } from '../../utils/getColorForScore';
+import SafeImage from './SafeImage';
 
 const MostEngagingUserCard = ({ user }) => {
 
@@ -37,18 +38,23 @@ const MostEngagingUserCard = ({ user }) => {
                         className="relative"
                     >
                         <div className="rounded-full p-1">
-                            <motion.img
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                            <SafeImage
                                 src={user.image}
                                 alt={user.name}
                                 className="w-24 h-24 rounded-full object-cover shadow-md border-4 border-[#90093A]"
+                                width={96}
+                                height={96}
                             />
                         </div>
                     </motion.div>
                 </div>
 
-                <h2 className="mt-4 text-sm font-semibold text-gray-800">{user.name}</h2>
+                <h2
+                    className="mt-4 text-sm font-semibold text-gray-800 max-w-[6rem] truncate overflow-hidden whitespace-nowrap text-center"
+                    title={user.name}
+                >
+                    {user.name}
+                </h2>
 
                 <motion.div
                     initial={{ width: 0 }}

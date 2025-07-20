@@ -102,7 +102,7 @@ const Sidebar = () => {
 
     return (
         <motion.div
-            className="bg-gray-50 min-h-screen rounded-r-2xl shadow-md z-10 flex flex-col overflow-hidden"
+            className="bg-gray-50 min-h-screen rounded-r-2xl shadow-md z-10 flex flex-col overflow-hidden hidden md:flex"
             variants={sidebarVariants}
             initial="expanded"
             animate={collapsed ? "collapsed" : "expanded"}

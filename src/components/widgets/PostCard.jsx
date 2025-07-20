@@ -7,6 +7,7 @@ import { ThumbsUp, Heart, MessageCircle, Share2, Send } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { reactToPost } from "../../features/posts/postSlice";
 import axiosInstance from "../../utils/axiosInstance";
+import SafeImage from './SafeImage';
 
 // Lazy load components
 const ImageMedia = React.lazy(() => import("./ImageMedia"));
@@ -60,6 +61,16 @@ const commentSectionVariants = {
             duration: 0.2
         }
     }
+};
+
+// Helper to detect and embed YouTube links
+const getYouTubeEmbedUrl = (url) => {
+    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+    const match = url.match(regex);
+    if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+    }
+    return null;
 };
 
 const PostCard = React.memo(({ post }) => {
@@ -227,6 +238,25 @@ const PostCard = React.memo(({ post }) => {
     const renderMedia = useCallback(() => {
         if (!post?.media_link) return null;
 
+        // Check for YouTube
+        const youtubeEmbedUrl = getYouTubeEmbedUrl(post.media_link);
+        if (youtubeEmbedUrl) {
+            return (
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-black">
+                    <iframe
+                        width="100%"
+                        height="400"
+                        src={youtubeEmbedUrl}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                    ></iframe>
+                </div>
+            );
+        }
+
         const mediaProps = {
             src: post.media_link,
             alt: "Post media",
@@ -261,11 +291,12 @@ const PostCard = React.memo(({ post }) => {
             <div className="flex items-center justify-between p-4 border-b border-gray-50">
                 <div className="flex items-center gap-3">
                     {post.user?.image ? (
-                        <img
+                        <SafeImage
                             src={post.user.image}
                             alt={post.user.name || "User"}
                             className="rounded-full w-12 h-12 border-2 border-blue-100 object-cover"
-                            loading="lazy"
+                            width={48}
+                            height={48}
                         />
                     ) : (
                         <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
@@ -350,7 +381,7 @@ const PostCard = React.memo(({ post }) => {
                         >
                             {post.comments_number || 0} comments
                         </button>
-                        <div className="flex items-center gap-1">
+                        {/* <div className="flex items-center gap-1">
                             <React.Suspense fallback={<div className="w-16 h-4 bg-gray-200 animate-pulse rounded" />}>
                                 <StarRating
                                     rating={post.post_ratings || 0}
@@ -358,7 +389,7 @@ const PostCard = React.memo(({ post }) => {
                                     interactive={false}
                                 />
                             </React.Suspense>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -391,7 +422,7 @@ const PostCard = React.memo(({ post }) => {
                     {isLoadingComments ? "Loading..." : "Comment"}
                 </motion.button>
 
-                <motion.button
+                {/* <motion.button
                     className="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-gray-600 hover:text-blue-600 hover:bg-gray-50"
                     variants={buttonVariants}
                     whileHover="hover"
@@ -399,11 +430,11 @@ const PostCard = React.memo(({ post }) => {
                 >
                     <Share2 className="h-5 w-5" />
                     Share
-                </motion.button>
+                </motion.button> */}
             </div>
 
             {/* Rating section */}
-            <div className="px-4 py-3 border-t border-gray-50 bg-gray-50">
+            {/* <div className="px-4 py-3 border-t border-gray-50 bg-gray-50">
                 <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium text-gray-700">Rate this post</h4>
                     <div className="flex items-center gap-2">
@@ -424,7 +455,7 @@ const PostCard = React.memo(({ post }) => {
                         </AnimatePresence>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Comments section */}
             <AnimatePresence>

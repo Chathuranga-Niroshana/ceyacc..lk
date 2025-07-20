@@ -6,6 +6,8 @@ import confetti from 'canvas-confetti';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCourseById } from '../../features/courses/coursesSlice';
+import logo from '../../assets/images/logo.png';
+import html2canvas from 'html2canvas';
 
 // Progress tracking utilities
 const COURSE_PROGRESS_KEY = 'ceyacc_course_progress';
@@ -50,53 +52,42 @@ const saveCourseProgress = (courseId, progress) => {
 };
 
 // Certificate Component
-const Certificate = ({ studentName, courseName, date, onDownload }) => {
-    const certificateRef = useRef();
-
-    const handleDownload = () => {
-        onDownload(certificateRef.current);
-    };
-
+const Certificate = React.forwardRef(({ studentName, courseName }, ref) => {
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
     return (
-        <div className="p-8 bg-white border-8 border-double border-blue-200 rounded-lg shadow-lg max-w-3xl mx-auto my-8" ref={certificateRef}>
-            <div className="text-center">
-                <div className="mb-6">
-                    <svg className="mx-auto h-16 w-16 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
+        <div
+            ref={ref}
+            style={{
+                background: '#fff',
+                border: '8px double #bfdbfe',
+                borderRadius: '1rem',
+                boxShadow: '0 10px 15px -3px rgba(59,130,246,0.1), 0 4px 6px -4px rgba(59,130,246,0.1)',
+                maxWidth: '48rem',
+                margin: '2rem auto',
+                position: 'relative',
+                padding: '2rem'
+            }}
+        >
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <img src={logo} alt="CeyAcc Logo" style={{ height: 64, width: 64, marginBottom: 8 }} />
+                    <span style={{ color: '#1d4ed8', fontWeight: 700, fontSize: 20 }}>Certified by CeyAcc</span>
                 </div>
-                <h1 className="text-3xl font-serif font-bold mb-4 text-blue-800">Certificate of Completion</h1>
-                <p className="text-lg text-gray-600 mb-8">This is to certify that</p>
-                <h2 className="text-2xl font-bold mb-8 text-gray-800">{studentName || "John Doe"}</h2>
-                <p className="text-lg text-gray-600 mb-2">has successfully completed the course</p>
-                <h3 className="text-xl font-bold mb-8 text-gray-800">"{courseName}"</h3>
-                <p className="text-lg text-gray-600 mb-8">on {date}</p>
-
-                <div className="mt-16 mb-8 border-t border-gray-300 pt-4">
-                    <div className="flex justify-around">
-                        <div className="text-center">
-                            <div className="h-px w-40 bg-black mx-auto mb-2"></div>
-                            <p className="text-sm text-gray-600">Instructor Signature</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="h-px w-40 bg-black mx-auto mb-2"></div>
-                            <p className="text-sm text-gray-600">Date</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div className="absolute bottom-4 right-4">
-                <button
-                    onClick={handleDownload}
-                    className="flex items-center text-blue-600 hover:text-blue-800"
-                >
-                    <Download className="w-5 h-5 mr-1" />
-                    <span>Download</span>
-                </button>
+                <h1 style={{ fontSize: 32, fontFamily: 'serif', fontWeight: 700, marginBottom: 16, color: '#1e40af' }}>Certificate of Completion</h1>
+                <p style={{ fontSize: 18, color: '#4b5563', marginBottom: 32 }}>This is to certify that</p>
+                <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 32, color: '#1f2937' }}>{studentName || "John Doe"}</h2>
+                <p style={{ fontSize: 18, color: '#4b5563', marginBottom: 8 }}>has successfully completed the course</p>
+                <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 32, color: '#1f2937' }}>&quot;{courseName}&quot;</h3>
+                <p style={{ fontSize: 18, color: '#4b5563', marginBottom: 32 }}>on {formattedDate}</p>
             </div>
         </div>
     );
-};
+});
 
 // Background Animation with Three.js
 const BackgroundAnimation = () => {
@@ -188,43 +179,51 @@ const BackgroundAnimation = () => {
 };
 
 // Video Player Component
-const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
+const getYouTubeEmbedUrl = (url) => {
+    // Handles both youtu.be and youtube.com links
+    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+    const match = url.match(regex);
+    if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+    }
+    return null;
+};
+
+const VideoPlayer = ({ src, onComplete, isActive, poster, isCompleted }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
     const videoRef = useRef(null);
 
-    // Handle video completion
-    useEffect(() => {
-        const videoElement = videoRef.current;
+    // Check if the src is a YouTube URL
+    const youtubeEmbedUrl = getYouTubeEmbedUrl(src);
 
+    useEffect(() => {
+        if (youtubeEmbedUrl) return; // Don't run for YouTube
+        const videoElement = videoRef.current;
         if (videoElement) {
             const handleTimeUpdate = () => {
                 const current = videoElement.currentTime;
                 const duration = videoElement.duration;
                 setProgress((current / duration) * 100);
-
-                // Mark as completed when 95% watched
-                if ((current / duration) >= 0.95) {
+                if ((current / duration) >= 0.95 && !isCompleted) {
                     onComplete();
                 }
             };
-
             const handleDurationChange = () => {
                 setDuration(videoElement.duration);
             };
-
             videoElement.addEventListener('timeupdate', handleTimeUpdate);
             videoElement.addEventListener('durationchange', handleDurationChange);
-
             return () => {
                 videoElement.removeEventListener('timeupdate', handleTimeUpdate);
                 videoElement.removeEventListener('durationchange', handleDurationChange);
             };
         }
-    }, [onComplete]);
+    }, [onComplete, youtubeEmbedUrl, isCompleted]);
 
     const togglePlay = () => {
+        if (youtubeEmbedUrl) return; // No play/pause for iframe
         if (videoRef.current) {
             if (isPlaying) {
                 videoRef.current.pause();
@@ -235,7 +234,6 @@ const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
         }
     };
 
-    // Format time from seconds to MM:SS
     const formatTime = (timeInSeconds) => {
         if (!timeInSeconds) return "00:00";
         const minutes = Math.floor(timeInSeconds / 60);
@@ -244,6 +242,36 @@ const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
     };
 
     const currentTime = videoRef.current ? videoRef.current.currentTime : 0;
+
+    if (youtubeEmbedUrl) {
+        return (
+            <div className={`relative rounded-lg overflow-hidden bg-black ${isActive ? 'block' : 'hidden'}`}>
+                <iframe
+                    width="100%"
+                    height="400"
+                    src={youtubeEmbedUrl}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full aspect-video"
+                ></iframe>
+                {isActive && !isCompleted && (
+                    <div className="p-4 text-center">
+                        <button
+                            onClick={onComplete}
+                            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            Mark as Watched
+                        </button>
+                    </div>
+                )}
+                {isCompleted && (
+                    <div className="p-4 text-center text-green-600 font-semibold">Lesson completed</div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className={`relative rounded-lg overflow-hidden bg-black ${isActive ? 'block' : 'hidden'}`}>
@@ -256,7 +284,6 @@ const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
                 <source src={src} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
-
             {/* Video Controls */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                 <div className="flex flex-col">
@@ -275,7 +302,6 @@ const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
                             style={{ width: `${progress}%` }}
                         ></div>
                     </div>
-
                     {/* Controls */}
                     <div className="flex justify-between items-center">
                         <button
@@ -284,13 +310,15 @@ const VideoPlayer = ({ src, onComplete, isActive, poster }) => {
                         >
                             {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
                         </button>
-
                         <div className="text-white text-sm">
                             {formatTime(currentTime)} / {formatTime(duration)}
                         </div>
                     </div>
                 </div>
             </div>
+            {isCompleted && (
+                <div className="p-2 text-center text-green-600 font-semibold bg-white/80 absolute top-2 right-2 rounded">Lesson completed</div>
+            )}
         </div>
     );
 };
@@ -518,6 +546,7 @@ const CourseDetails = () => {
 
     // Get course from Redux store
     const { currentCourse, loading, error } = useSelector((state) => state.courses);
+    const { currentUser, userProfile } = useSelector((state) => state.auth);
 
     // Progress state
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -525,7 +554,7 @@ const CourseDetails = () => {
     const [showQuiz, setShowQuiz] = useState(false);
     const [quizCompleted, setQuizCompleted] = useState(false);
     const [quizScore, setQuizScore] = useState(0);
-    const [userName, setUserName] = useState("");
+    const [userName, setUserName] = useState(userProfile?.name || currentUser?.name || "");
     const [showNameInput, setShowNameInput] = useState(false);
     const [showCertificate, setShowCertificate] = useState(false);
     const [sessionStartTime, setSessionStartTime] = useState(null);
@@ -542,6 +571,9 @@ const CourseDetails = () => {
     const allMediaCompleted = useMemo(() => {
         return hasMedia ? completedMedia.length === currentCourse.media.length : false;
     }, [hasMedia, completedMedia, currentCourse]);
+
+    // Certificate ref for download
+    const certificateRef = useRef();
 
     // Fetch course data on component mount
     useEffect(() => {
@@ -586,10 +618,10 @@ const CourseDetails = () => {
 
     // Progress calculations are now memoized above
 
-    // Handle media completion
-    const handleMediaComplete = () => {
-        if (!completedMedia.includes(currentMediaIndex)) {
-            const newCompletedMedia = [...completedMedia, currentMediaIndex];
+    // Enhanced: Mark media as completed only if not already completed
+    const handleMediaComplete = (mediaIndex = currentMediaIndex) => {
+        if (!completedMedia.includes(mediaIndex)) {
+            const newCompletedMedia = [...completedMedia, mediaIndex];
             setCompletedMedia(newCompletedMedia);
         }
     };
@@ -608,12 +640,16 @@ const CourseDetails = () => {
         }
     };
 
-    // Download certificate (mock function)
-    const handleDownloadCertificate = (certificateElement) => {
-        // In a real app, you would use html2canvas or similar to convert to image/PDF
-        console.log("Downloading certificate for:", userName);
-        alert("Certificate download started!");
-        // Implementation would depend on your preferred method (html2canvas, jsPDF, etc.)
+    // Download certificate as image
+    const handleDownloadCertificate = async () => {
+        if (!certificateRef.current) return;
+        certificateRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await new Promise(res => setTimeout(res, 300));
+        const canvas = await html2canvas(certificateRef.current, { useCORS: true, backgroundColor: null });
+        const link = document.createElement('a');
+        link.download = `certificate-${userName || 'user'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     };
 
     // Format today's date for the certificate
@@ -723,9 +759,10 @@ const CourseDetails = () => {
                                         <VideoPlayer
                                             key={index}
                                             src={mediaUrl}
-                                            onComplete={() => handleMediaComplete()}
+                                            onComplete={() => handleMediaComplete(index)}
                                             isActive={currentMediaIndex === index}
                                             poster={currentCourse.thumbnail && currentCourse.thumbnail[0]}
+                                            isCompleted={completedMedia.includes(index)}
                                         />
                                     ))
                                 ) : (
@@ -809,12 +846,25 @@ const CourseDetails = () => {
                                 </div>
                             </div>
                         ) : showCertificate ? (
-                            <Certificate
-                                studentName={userName}
-                                courseName={currentCourse.title}
-                                date={formattedDate}
-                                onDownload={handleDownloadCertificate}
-                            />
+                            <>
+                                <Certificate
+                                    ref={certificateRef}
+                                    studentName={userName}
+                                    courseName={currentCourse.title}
+                                />
+                                <div className="flex justify-center mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleDownloadCertificate}
+                                        className="flex items-center text-blue-600 hover:text-blue-800 bg-white px-4 py-2 rounded shadow border border-blue-200"
+                                    >
+                                        <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                                        </svg>
+                                        <span>Download Certificate</span>
+                                    </button>
+                                </div>
+                            </>
                         ) : (
                             <Quiz
                                 questions={currentCourse.questions || []}

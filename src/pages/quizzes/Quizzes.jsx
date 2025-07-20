@@ -7,6 +7,7 @@ import { BookOpen, CheckCircle, XCircle, Award, Search } from 'lucide-react';
 import * as THREE from 'three';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchQuizzes, createQuizInteraction, fetchQuizInteractions } from '../../features/quizzes/quizzesSlice';
+import SafeImage from '../../components/widgets/SafeImage';
 
 // Quiz card component with animation
 const QuizCard = ({ quiz, index }) => {
@@ -85,10 +86,12 @@ const QuizCard = ({ quiz, index }) => {
                 <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
                     {quiz.media_url_one ? (
                         quiz.media_url_one.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                            <img
+                            <SafeImage
                                 src={quiz.media_url_one}
                                 alt={quiz.title}
                                 className="w-full h-full object-cover"
+                                width={"100%"}
+                                height={192}
                             />
                         ) : quiz.media_url_one.match(/\.(mp4|webm|mov)$/i) ? (
                             <video
